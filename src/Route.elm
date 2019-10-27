@@ -1,39 +1,44 @@
-module Route exposing (Route(..), parseUrl, href, routeToString)
+module Route exposing (Route(..), href, parseUrl, routeToString)
 
+import Html exposing (Attribute)
+import Html.Attributes as Attr
 import Url exposing (Url)
 import Url.Parser exposing (..)
 import Url.Parser.Query as Q
-import Html exposing (Attribute)
-import Html.Attributes as Attr
+
 
 type Route
-  = Home
-  | Reference
-  | Category
-  | Description
-  | Area
-  | Dictionary
-  | ToggleMenu
+    = Home
+    | Reference
+    | Category
+    | Description
+    | Area
+    | Dictionary
+    | ToggleMenu
+
 
 parseUrl : Url -> Maybe Route
 parseUrl url =
-  Url.Parser.parse parser url
+    Url.Parser.parse parser url
+
 
 parser : Parser (Route -> a) a
 parser =
-  oneOf
-    [ map Home top
-    , map Reference (s "reference")
-    , map Category (s "category")
-    , map Description (s "description")
-    , map Area (s "area")
-    , map Dictionary (s "dictionary")
-    , map ToggleMenu (s "toggle-menu")
-    ]
+    oneOf
+        [ map Home top
+        , map Reference (s "reference")
+        , map Category (s "category")
+        , map Description (s "description")
+        , map Area (s "area")
+        , map Dictionary (s "dictionary")
+        , map ToggleMenu (s "toggle-menu")
+        ]
+
 
 href : Route -> Attribute msg
 href targetRoute =
     Attr.href (routeToString targetRoute)
+
 
 routeToString : Route -> String
 routeToString page =
@@ -44,21 +49,21 @@ routeToString page =
                     []
 
                 Reference ->
-                  [ "reference" ]
-                
+                    [ "reference" ]
+
                 Category ->
-                  [ "category" ]
-                
+                    [ "category" ]
+
                 Description ->
-                  [ "description" ]
-                
+                    [ "description" ]
+
                 Area ->
-                  [ "area" ]
-                
+                    [ "area" ]
+
                 Dictionary ->
-                  [ "dictionary" ]
-                
+                    [ "dictionary" ]
+
                 ToggleMenu ->
-                  [ "toggle-menu" ]
+                    [ "toggle-menu" ]
     in
-      String.join "/" pieces
+    String.join "/" pieces
