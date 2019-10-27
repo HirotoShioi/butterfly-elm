@@ -2,19 +2,21 @@ module Session exposing (..)
 
 import Page exposing (Page)
 import Browser.Navigation as Nav
+import NavBar
 
 type alias Session =
   { key : Nav.Key
-  , pageModel : Page.Model
+  , navModel : NavBar.Model
   }
 
-init : Nav.Key -> Page.Model -> Session
+init : Nav.Key -> NavBar.Model -> Session
 init key model = Session key model
 
 getKey : Session -> Nav.Key
 getKey session = session.key
 
-setPage : Page -> Session -> Session
-setPage page session = 
-  let newPage = session.pageModel |> Page.setPage page
-  in { session | pageModel = newPage }
+updateNavModel :  Session -> NavBar.Model -> Session
+updateNavModel session navbarmodel = { session | navModel = navbarmodel }
+
+disableMenu : Session -> Session
+disableMenu session = { session | navModel = NavBar.init }

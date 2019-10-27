@@ -13,6 +13,7 @@ type Route
   | Description
   | Area
   | Dictionary
+  | ToggleMenu
 
 parseUrl : Url -> Maybe Route
 parseUrl url =
@@ -27,6 +28,7 @@ parser =
     , map Description (s "description")
     , map Area (s "area")
     , map Dictionary (s "dictionary")
+    , map ToggleMenu (s "toggle-menu")
     ]
 
 href : Route -> Attribute msg
@@ -55,5 +57,8 @@ routeToString page =
                 
                 Dictionary ->
                   [ "dictionary" ]
+                
+                ToggleMenu ->
+                  [ "toggle-menu" ]
     in
       String.join "/" pieces
