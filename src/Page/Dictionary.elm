@@ -4,6 +4,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Browser.Navigation as Nav
 
+import Session exposing (Session)
+
 type Msg
   = Click
 
@@ -21,7 +23,7 @@ type Region
   | IndiaAustralia
 
 type alias Model = 
-  { key : Nav.Key
+  { session : Session
   , butterflies : List Butterfly
   , searchName : Maybe String
   , searchColor : Maybe String
@@ -35,11 +37,14 @@ type alias Butterfly =
   , category : String
   }
 
-init : Nav.Key -> Model
-init key = Model key [] Nothing Nothing Nothing Nothing
+init : Session -> Model
+init session = Model session [] Nothing Nothing Nothing Nothing
 
 getKey : Model -> Nav.Key
-getKey model = model.key
+getKey model = model.session.key
+
+getSession : Model -> Session
+getSession model = model.session
 
 view : Model -> { title: String, content: Html Msg}
 view model =
