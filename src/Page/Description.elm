@@ -6,7 +6,7 @@ import Html.Attributes exposing (..)
 
 view : { title : String, content : Html msg }
 view =
-    { title = "Description"
+    { title = "蝶の解説"
     , content =
         div []
             [ h1 [] [ text "This is description view" ] ]

@@ -8,8 +8,8 @@ import Bulma.Components exposing (..)
 import Bulma.Elements exposing (..)
 import Bulma.Layout exposing (..)
 import Bulma.Modifiers exposing (..)
-import Html exposing (Html, main_)
-import Html.Attributes exposing (src)
+import Html exposing (Html, main_, text)
+import Html.Attributes exposing (class, src)
 import Html.Events exposing (onClick)
 import NavBar
 import Page exposing (Page)
@@ -240,8 +240,17 @@ view model =
 
 
 toViewNoOp : Session -> Page -> { title : String, content : Html msg } -> Browser.Document Msg
-toViewNoOp session page c =
-    toView session page (\_ -> NoOp) c
+toViewNoOp session page { title, content } =
+    let
+        body =
+            [ main_ []
+                [ stylesheet
+                , Html.map GotNavBarMessage <| NavBar.view page session.navModel
+                , heroView (\_ -> NoOp) title content
+                ]
+            ]
+    in
+    Browser.Document title body
 
 
 toView : Session -> Page -> (msg -> Msg) -> { title : String, content : Html msg } -> Browser.Document Msg
@@ -251,21 +260,39 @@ toView session page toMsg { title, content } =
             [ main_ []
                 [ stylesheet
                 , Html.map GotNavBarMessage <| NavBar.view page session.navModel
-                , heroView toMsg content
+                , sectionView toMsg content
                 ]
             ]
     in
     Browser.Document title body
 
 
-heroView : (msg -> Msg) -> Html msg -> Html Msg
-heroView toMsg content =
+sectionView : (msg -> Msg) -> Html msg -> Html Msg
+sectionView toMsg content =
+    section NotSpaced
+        [ onClick MainClicked ]
+        [ container []
+            [ Html.map toMsg content ]
+        ]
+
+
+heroView : (msg -> Msg) -> String -> Html msg -> Html Msg
+heroView toMsg t content =
     hero myHeroModifiers
         []
         [ hero myHeroModifiers
-            []
-            [ heroBody [ onClick MainClicked ]
-                [ container [] [ Html.map toMsg content ] ]
+            [ onClick MainClicked ]
+            [ heroBody []
+                [ container []
+                    [ title H2
+                        []
+                        [ text t ]
+                    ]
+                ]
+            , section NotSpaced
+                []
+                [ container [] [ Html.map toMsg content ]
+                ]
             ]
         ]
 
@@ -273,7 +300,7 @@ heroView toMsg content =
 myHeroModifiers : HeroModifiers
 myHeroModifiers =
     { bold = False
-    , size = Standard
+    , size = Small
     , color = Default
     }
 

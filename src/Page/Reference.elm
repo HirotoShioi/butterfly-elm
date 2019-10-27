@@ -6,7 +6,7 @@ import Html.Attributes exposing (..)
 
 view : { title : String, content : Html msg }
 view =
-    { title = "Reference"
+    { title = "参考文献"
     , content =
         div []
             [ h1 [] [ text "This is reference view" ] ]

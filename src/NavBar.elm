@@ -59,11 +59,11 @@ view page model =
         , navbarMenu model.isMenuOpen
             []
             [ navbarStart []
-                [ navLink page Route.Reference "参考文献"
-                , navLink page Route.Category "蝶の分類"
+                [ navLink page Route.Dictionary "蝶の図鑑"
                 , navLink page Route.Description "蝶の解説"
+                , navLink page Route.Category "蝶の分類"
                 , navLink page Route.Area "生物区・蝶分類の地理"
-                , navLink page Route.Dictionary "蝶の図鑑"
+                , navLink page Route.Reference "参考文献"
                 ]
             , navbarEnd [] []
             ]
