@@ -2,12 +2,15 @@ module Page.NotFound exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Page
 
 
-view : { title : String, content : Html msg }
+view : Html msg
 view =
-    { title = "NotFound"
-    , content =
-        div []
-            [ h1 [] [ text "Page not found!" ] ]
-    }
+    div []
+        [ h1 [] [ text "Page not found!" ] ]
+
+
+title : String
+title =
+    Page.notFoundTitle

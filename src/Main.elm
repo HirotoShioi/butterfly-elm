@@ -218,29 +218,29 @@ view : Model -> Browser.Document Msg
 view model =
     case model of
         NotFound s ->
-            toViewNoOp s Page.NotFound NotFound.view
+            toViewNoOp s Page.NotFound NotFound.title NotFound.view
 
         Home s ->
-            toViewNoOp s Page.Home Home.view
+            toViewNoOp s Page.Home Home.title Home.view
 
         Reference s ->
-            toViewNoOp s Page.Reference Ref.view
+            toViewNoOp s Page.Reference Ref.title Ref.view
 
         Category s ->
-            toViewNoOp s Page.Category Category.view
+            toViewNoOp s Page.Category Category.title Category.view
 
         Description s ->
-            toViewNoOp s Page.Description Desc.view
+            toViewNoOp s Page.Description Desc.title Desc.view
 
         Area s ->
-            toViewNoOp s Page.Area Area.view
+            toViewNoOp s Page.Area Area.title Area.view
 
         Dictionary submodel ->
-            toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMessage (Dic.view submodel)
+            toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMessage Dic.title (Dic.view submodel)
 
 
-toViewNoOp : Session -> Page -> { title : String, content : Html msg } -> Browser.Document Msg
-toViewNoOp session page { title, content } =
+toViewNoOp : Session -> Page -> String -> Html msg -> Browser.Document Msg
+toViewNoOp session page title content =
     let
         body =
             mainView session page (heroView title (\_ -> NoOp) content)
@@ -248,8 +248,8 @@ toViewNoOp session page { title, content } =
     Browser.Document title body
 
 
-toView : Session -> Page -> (msg -> Msg) -> { title : String, content : Html msg } -> Browser.Document Msg
-toView session page toMsg { title, content } =
+toView : Session -> Page -> (msg -> Msg) -> String -> Html msg -> Browser.Document Msg
+toView session page toMsg title content =
     let
         body =
             mainView session page (sectionView toMsg content)
@@ -306,23 +306,6 @@ myColumnsModifiers =
     , gap = Gap0
     , display = TabletAndBeyond
     , centered = True
-    }
-
-
-myColumnModifiers : ColumnModifiers
-myColumnModifiers =
-    { offset = Width2
-    , widths = myWidths
-    }
-
-
-myWidths : Devices (Maybe Width)
-myWidths =
-    { mobile = Nothing
-    , tablet = Nothing
-    , desktop = Just Width10
-    , widescreen = Just Width8
-    , fullHD = Just Width8
     }
 
 
