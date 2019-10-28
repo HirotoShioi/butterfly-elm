@@ -271,7 +271,8 @@ mainView session page content =
 
 sectionView : (msg -> Msg) -> Html msg -> Html Msg
 sectionView toMsg content =
-    section NotSpaced []
+    section NotSpaced
+        [ class "content" ]
         [ Html.map toMsg content ]
 
 
@@ -285,7 +286,7 @@ heroView t toMsg content =
                 [ text t ]
             ]
         , section NotSpaced
-            []
+            [ class "content" ]
             [ Html.map toMsg content
             ]
         ]
