@@ -59,7 +59,7 @@ getSession model =
 
 view : Model -> { title : String, content : Html Msg }
 view model =
-    { title = "Dictionary"
+    { title = "蝶の図鑑"
     , content =
         div []
             [ h1 [] [ text "This is Dictionary view" ]

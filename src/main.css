@@ -8,3 +8,9 @@
 [data-elm-hot="true"] {
   height: inherit;
 }
+
+@media screen and (min-width: 1088px) {
+  .nav-margin {
+    margin-left: 16.66667%;
+  }  
+}

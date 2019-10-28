@@ -8,7 +8,7 @@ import Bulma.Components exposing (..)
 import Bulma.Elements exposing (..)
 import Bulma.Layout exposing (..)
 import Bulma.Modifiers exposing (..)
-import Html exposing (Html, main_, text)
+import Html exposing (Html, div, main_, text)
 import Html.Attributes exposing (class, src)
 import Html.Events exposing (onClick)
 import NavBar
@@ -243,12 +243,7 @@ toViewNoOp : Session -> Page -> { title : String, content : Html msg } -> Browse
 toViewNoOp session page { title, content } =
     let
         body =
-            [ main_ []
-                [ stylesheet
-                , Html.map GotNavBarMessage <| NavBar.view page session.navModel
-                , heroView (\_ -> NoOp) title content
-                ]
-            ]
+            mainView session page (heroView title (\_ -> NoOp) content)
     in
     Browser.Document title body
 
@@ -257,14 +252,21 @@ toView : Session -> Page -> (msg -> Msg) -> { title : String, content : Html msg
 toView session page toMsg { title, content } =
     let
         body =
-            [ main_ []
-                [ stylesheet
-                , Html.map GotNavBarMessage <| NavBar.view page session.navModel
-                , sectionView toMsg content
-                ]
-            ]
+            mainView session page (sectionView toMsg content)
     in
     Browser.Document title body
+
+
+mainView : Session -> Page -> Html Msg -> List (Html Msg)
+mainView session page content =
+    [ main_ []
+        [ stylesheet
+        , Html.map GotNavBarMessage <| NavBar.view page session.navModel
+        , columns myColumnsModifiers
+            [ onClick MainClicked ]
+            [ div [ class "column is-8 is-offset-2" ] [ content ] ]
+        ]
+    ]
 
 
 sectionView : (msg -> Msg) -> Html msg -> Html Msg
@@ -276,23 +278,18 @@ sectionView toMsg content =
         ]
 
 
-heroView : (msg -> Msg) -> String -> Html msg -> Html Msg
-heroView toMsg t content =
+heroView : String -> (msg -> Msg) -> Html msg -> Html Msg
+heroView t toMsg content =
     hero myHeroModifiers
         []
-        [ hero myHeroModifiers
-            [ onClick MainClicked ]
-            [ heroBody []
-                [ container []
-                    [ title H2
-                        []
-                        [ text t ]
-                    ]
-                ]
-            , section NotSpaced
+        [ heroBody []
+            [ title H2
                 []
-                [ container [] [ Html.map toMsg content ]
-                ]
+                [ text t ]
+            ]
+        , section NotSpaced
+            []
+            [ Html.map toMsg content
             ]
         ]
 
@@ -302,6 +299,32 @@ myHeroModifiers =
     { bold = False
     , size = Small
     , color = Default
+    }
+
+
+myColumnsModifiers : ColumnsModifiers
+myColumnsModifiers =
+    { multiline = False
+    , gap = Gap0
+    , display = TabletAndBeyond
+    , centered = True
+    }
+
+
+myColumnModifiers : ColumnModifiers
+myColumnModifiers =
+    { offset = Width2
+    , widths = myWidths
+    }
+
+
+myWidths : Devices (Maybe Width)
+myWidths =
+    { mobile = Nothing
+    , tablet = Nothing
+    , desktop = Just Width10
+    , widescreen = Just Width8
+    , fullHD = Just Width8
     }
 
 
