@@ -3,6 +3,7 @@ module Page.Dictionary exposing (..)
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Page
 import Session exposing (Session)
 
 
@@ -57,16 +58,13 @@ getSession model =
     model.session
 
 
-view : Model -> { title : String, content : Html Msg }
+view : Model -> Html Msg
 view model =
-    { title = "蝶の図鑑"
-    , content =
-        div []
-            [ h1 [] [ text "This is Dictionary view" ]
-            , ul [] <|
-                List.map showButterflies dummyButterflies
-            ]
-    }
+    div []
+        [ h1 [] [ text "This is Dictionary view" ]
+        , ul [] <|
+            List.map showButterflies dummyButterflies
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -87,3 +85,8 @@ dummyButterflies =
 showButterflies : Butterfly -> Html Msg
 showButterflies butterfly =
     li [] [ text butterfly.jp_name ]
+
+
+title : String
+title =
+    Page.dictionaryTitle

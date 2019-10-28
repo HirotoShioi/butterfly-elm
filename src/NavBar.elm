@@ -9,7 +9,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onMouseOver, stopPropagationOn)
 import Json.Decode as Decode exposing (Decoder)
-import Page exposing (Page(..))
+import Page exposing (Page)
 import Route exposing (Route)
 
 
@@ -59,11 +59,11 @@ view page model =
         , navbarMenu model.isMenuOpen
             []
             [ navbarStart []
-                [ navLink page Route.Dictionary "蝶の図鑑"
-                , navLink page Route.Description "蝶の解説"
-                , navLink page Route.Category "蝶の分類"
-                , navLink page Route.Area "生物区・蝶分類の地理"
-                , navLink page Route.Reference "参考文献"
+                [ navLink page Route.Dictionary Page.dictionaryTitle
+                , navLink page Route.Description Page.descriptionTitle
+                , navLink page Route.Category Page.categoryTitle
+                , navLink page Route.Area Page.areaTitle
+                , navLink page Route.Reference Page.referenceTitle
                 ]
             , navbarEnd [] []
             ]
@@ -78,22 +78,22 @@ navLink page route linkName =
 isActive : Page -> Route -> Bool
 isActive page route =
     case ( page, route ) of
-        ( Home, Route.Home ) ->
+        ( Page.Home, Route.Home ) ->
             True
 
-        ( Reference, Route.Reference ) ->
+        ( Page.Reference, Route.Reference ) ->
             True
 
-        ( Category, Route.Category ) ->
+        ( Page.Category, Route.Category ) ->
             True
 
-        ( Description, Route.Description ) ->
+        ( Page.Description, Route.Description ) ->
             True
 
-        ( Area, Route.Area ) ->
+        ( Page.Area, Route.Area ) ->
             True
 
-        ( Dictionary, Route.Dictionary ) ->
+        ( Page.Dictionary, Route.Dictionary ) ->
             True
 
         _ ->
