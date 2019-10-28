@@ -46,7 +46,7 @@ toggleNav model =
 view : Page -> Model -> Html Msg
 view page model =
     navbar navbarModifiers
-        []
+        [ class "nav-margin" ]
         [ navbarBrand []
             (myNavbarBurger model.isMenuOpen)
             [ navbarItem False
