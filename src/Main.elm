@@ -8,6 +8,7 @@ import Bulma.Components exposing (..)
 import Bulma.Elements exposing (..)
 import Bulma.Layout exposing (..)
 import Bulma.Modifiers exposing (..)
+import Butterfly.Api as Api
 import Html exposing (Html, div, main_, text)
 import Html.Attributes exposing (class, src)
 import Html.Events exposing (onClick)
@@ -149,7 +150,7 @@ changeRouteTo maybeRoute model =
             ( Area session, Cmd.none )
 
         Just Route.Dictionary ->
-            ( Dictionary <| Dic.init session, Cmd.none )
+            ( Dictionary <| Dic.init session, Cmd.map FetchButterflies Api.getButterflies )
 
         Just Route.ToggleMenu ->
             NavBar.update NavBar.ToggleMenu session.navModel
@@ -160,6 +161,7 @@ type Msg
     = UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
     | GotDictionaryMessage Dic.Msg
+    | FetchButterflies Api.Msg
     | GotNavBarMessage NavBar.Msg
     | NoOp
     | MainClicked
@@ -185,6 +187,10 @@ update msg model =
 
         ( GotDictionaryMessage submsg, Dictionary submodel ) ->
             Dic.update submsg submodel
+                |> updateWith Dictionary GotDictionaryMessage
+
+        ( FetchButterflies butterflymsg, Dictionary subModel ) ->
+            Dic.update (Dic.GotButterflyResponse butterflymsg) subModel
                 |> updateWith Dictionary GotDictionaryMessage
 
         ( MainClicked, somemodel ) ->

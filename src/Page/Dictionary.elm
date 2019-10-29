@@ -1,6 +1,8 @@
 module Page.Dictionary exposing (..)
 
 import Browser.Navigation as Nav
+import Butterfly.Api as Api exposing (Msg(..))
+import Butterfly.Type exposing (Butterfly)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Page
@@ -9,6 +11,7 @@ import Session exposing (Session)
 
 type Msg
     = Click
+    | GotButterflyResponse Api.Msg
 
 
 type SearchTerm
@@ -36,13 +39,6 @@ type alias Model =
     }
 
 
-type alias Butterfly =
-    { jp_name : String
-    , eng_name : String
-    , category : String
-    }
-
-
 init : Session -> Model
 init session =
     Model session [] Nothing Nothing Nothing Nothing
@@ -63,7 +59,7 @@ view model =
     div []
         [ h1 [] [ text "This is Dictionary view" ]
         , ul [] <|
-            List.map showButterflies dummyButterflies
+            List.map showButterflies model.butterflies
         ]
 
 
@@ -73,13 +69,13 @@ update msg model =
         Click ->
             ( model, Cmd.none )
 
+        GotButterflyResponse apimsg ->
+            case apimsg of
+                Api.GotButterflies (Ok butterflies) ->
+                    ( { model | butterflies = List.take 100 butterflies }, Cmd.none )
 
-dummyButterflies : List Butterfly
-dummyButterflies =
-    [ Butterfly "a" "a" "a"
-    , Butterfly "b" "b" "b"
-    , Butterfly "c" "c" "c"
-    ]
+                Api.GotButterflies (Err err) ->
+                    ( model, Cmd.none )
 
 
 showButterflies : Butterfly -> Html Msg
