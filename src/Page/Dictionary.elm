@@ -152,7 +152,7 @@ update msg model =
 showButterflies : Butterfly -> Html Msg
 showButterflies butterfly =
     div [ class "column is-one-third-tablet is-one-fifth-desktop" ]
-        [ card []
+        [ card [class "butterfly-card"]
             [ cardImage [] [ butterflyImage butterfly.img_src ]
             , cardContent [ textCentered, textSize Small ]
                 [ div []
