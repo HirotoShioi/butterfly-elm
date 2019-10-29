@@ -2,7 +2,6 @@ module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
-import Bulma.CDN exposing (stylesheet)
 import Bulma.Columns exposing (..)
 import Bulma.Components exposing (..)
 import Bulma.Elements exposing (..)
@@ -18,6 +17,7 @@ import Page.Area as Area
 import Page.Category as Category
 import Page.Description as Desc
 import Page.Dictionary as Dic
+import Page.Error as Error
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Page.Reference as Ref
@@ -38,11 +38,15 @@ type Model
     | Category Session
     | Description Session
     | Dictionary Dic.Model
+    | Error Session
 
 
 getKey : Model -> Nav.Key
 getKey model =
     case model of
+        Error s ->
+            S.getKey s
+
         Home s ->
             S.getKey s
 
@@ -68,6 +72,9 @@ getKey model =
 getSession : Model -> Session
 getSession model =
     case model of
+        Error s ->
+            s
+
         Home s ->
             s
 
@@ -87,12 +94,15 @@ getSession model =
             s
 
         Dictionary m ->
-            m.session
+            Dic.getSession m
 
 
 updateSession : Model -> Session -> Model
 updateSession model s =
     case model of
+        Error _ ->
+            Error s
+
         Home _ ->
             Home s
 
@@ -112,7 +122,7 @@ updateSession model s =
             Description s
 
         Dictionary m ->
-            Dictionary { m | session = s }
+            Dictionary (Dic.updateSession m s)
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -150,18 +160,31 @@ changeRouteTo maybeRoute model =
             ( Area session, Cmd.none )
 
         Just Route.Dictionary ->
-            ( Dictionary <| Dic.init session, Cmd.map FetchButterflies Api.getButterflies )
+            updateWith Dictionary GotDictionaryMessage (Dic.init session)
+
+        Just Route.Error ->
+            ( Error session, Cmd.none )
 
         Just Route.ToggleMenu ->
             NavBar.update NavBar.ToggleMenu session.navModel
                 |> updateWith (\n -> S.updateNavModel session n |> updateSession model) GotNavBarMessage
 
 
+
+-- Map over submodel as well as submsg to main
+
+
+updateWith : (subModel -> Model) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
+updateWith toModel toMsg ( subModel, subCmd ) =
+    ( toModel subModel
+    , Cmd.map toMsg subCmd
+    )
+
+
 type Msg
     = UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
     | GotDictionaryMessage Dic.Msg
-    | FetchButterflies Api.Msg
     | GotNavBarMessage NavBar.Msg
     | NoOp
     | MainClicked
@@ -189,10 +212,6 @@ update msg model =
             Dic.update submsg submodel
                 |> updateWith Dictionary GotDictionaryMessage
 
-        ( FetchButterflies butterflymsg, Dictionary subModel ) ->
-            Dic.update (Dic.GotButterflyResponse butterflymsg) subModel
-                |> updateWith Dictionary GotDictionaryMessage
-
         ( MainClicked, somemodel ) ->
             let
                 session =
@@ -206,23 +225,15 @@ update msg model =
 
 
 
--- Map over submodel as well as submsg to main
-
-
-updateWith : (subModel -> Model) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
-updateWith toModel toMsg ( subModel, subCmd ) =
-    ( toModel subModel
-    , Cmd.map toMsg subCmd
-    )
-
-
-
 ---- VIEW ----
 
 
 view : Model -> Browser.Document Msg
 view model =
     case model of
+        Error s ->
+            toViewNoOp s Page.Error Error.title Error.view
+
         NotFound s ->
             toViewNoOp s Page.NotFound NotFound.title NotFound.view
 
@@ -266,11 +277,10 @@ toView session page toMsg title content =
 mainView : Session -> Page -> Html Msg -> List (Html Msg)
 mainView session page content =
     [ main_ []
-        [ stylesheet
-        , Html.map GotNavBarMessage <| NavBar.view page session.navModel
+        [ Html.map GotNavBarMessage <| NavBar.view page session.navModel
         , columns myColumnsModifiers
             [ onClick MainClicked ]
-            [ div [ class "column is-8 is-offset-2" ] [ content ] ]
+            [ content ]
         ]
     ]
 
@@ -284,16 +294,18 @@ sectionView toMsg content =
 
 heroView : String -> (msg -> Msg) -> Html msg -> Html Msg
 heroView t toMsg content =
-    hero myHeroModifiers
-        []
-        [ heroBody []
-            [ title H2
-                []
-                [ text t ]
-            ]
-        , section NotSpaced
-            [ class "content" ]
-            [ Html.map toMsg content
+    div [ class "column is-8 is-offset-2" ]
+        [ hero myHeroModifiers
+            []
+            [ heroBody []
+                [ title H2
+                    []
+                    [ text t ]
+                ]
+            , section NotSpaced
+                [ class "content" ]
+                [ Html.map toMsg content
+                ]
             ]
         ]
 

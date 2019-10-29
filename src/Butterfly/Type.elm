@@ -14,8 +14,6 @@ type alias Butterfly =
     , category : String
     , img_src : String
     , pdf_src : String
-    , img_path : Maybe String
-    , pdf_path : String
     , jp_name : String
     , eng_name : String
     , bgcolor : String
@@ -37,8 +35,6 @@ butterflyDecoder =
         |> required "category" string
         |> required "img_src" string
         |> required "pdf_src" string
-        |> required "img_path" (nullable string)
-        |> required "pdf_path" string
         |> required "jp_name" string
         |> required "eng_name" string
         |> required "bgcolor" string

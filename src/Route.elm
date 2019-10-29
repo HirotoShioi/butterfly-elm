@@ -15,6 +15,7 @@ type Route
     | Area
     | Dictionary
     | ToggleMenu
+    | Error
 
 
 parseUrl : Url -> Maybe Route
@@ -32,6 +33,7 @@ parser =
         , map Area (s "area")
         , map Dictionary (s "dictionary")
         , map ToggleMenu (s "toggle-menu")
+        , map Error (s "error")
         ]
 
 
@@ -65,5 +67,8 @@ routeToString page =
 
                 ToggleMenu ->
                     [ "toggle-menu" ]
+
+                Error ->
+                    [ "error" ]
     in
     String.join "/" pieces

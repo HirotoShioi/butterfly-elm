@@ -9,12 +9,22 @@
   height: inherit;
 }
 
-@media screen and (min-width: 1088px) {
-  .nav-margin {
-    margin-left: 16.66667%;
-  }  
-}
-
 .bottom-img {
   margin-top: 2em;
+}
+
+.dictionary-view .card-image {
+  padding-top: 0.5em;
+}
+
+.dictionary-view .card-image figure {
+  margin: 0 auto !important;
+}
+
+.loading {
+  width: 200px !important;
+}
+
+.butterfly-card:hover {
+      box-shadow: 0 5px 5px rgba(10,10,10,.3), 0 0 0 1px rgba(10,10,10,.1);
 }
