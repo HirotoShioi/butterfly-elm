@@ -9,12 +9,18 @@
   height: inherit;
 }
 
-@media screen and (min-width: 1088px) {
-  .nav-margin {
-    margin-left: 16.66667%;
-  }  
-}
-
 .bottom-img {
   margin-top: 2em;
+}
+
+.dictionary-view .card-image {
+  padding-top: 0.5em;
+}
+
+.dictionary-view .card-image figure {
+  margin: 0 auto !important;
+}
+
+.loading {
+  width: 200px !important;
 }

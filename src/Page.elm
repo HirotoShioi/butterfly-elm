@@ -15,6 +15,7 @@ type Page
     | Dictionary
       -- 570種の図鑑と解説
     | NotFound
+    | Error
 
 
 homeTitle : String
@@ -50,3 +51,8 @@ dictionaryTitle =
 notFoundTitle : String
 notFoundTitle =
     "Page not found"
+
+
+errorTitle : String
+errorTitle =
+    "Error"
