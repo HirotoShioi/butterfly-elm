@@ -10,6 +10,7 @@ import Butterfly.Api as Api exposing (Msg(..))
 import Butterfly.Type exposing (Butterfly)
 import Html exposing (..)
 import Html.Attributes as A exposing (..)
+import Html.Events exposing (onClick)
 import Page
 import Route
 import Session exposing (Session)
@@ -18,6 +19,7 @@ import Session exposing (Session)
 type Msg
     = Click
     | GotButterflyResponse Api.Msg
+    | ButterflyClicked Butterfly
 
 
 type SearchTerm
@@ -148,11 +150,21 @@ update msg model =
                     in
                     ( model, Nav.pushUrl key route )
 
+        ButterflyClicked butterfly ->
+            let
+                session =
+                    getSession model
+
+                newSession =
+                    Session.update (Session.EnableModal butterfly) session
+            in
+            ( updateSession model newSession, Cmd.none )
+
 
 showButterflies : Butterfly -> Html Msg
 showButterflies butterfly =
     div [ class "column is-one-third-tablet is-one-fifth-desktop" ]
-        [ card [class "butterfly-card"]
+        [ card [ class "butterfly-card", onClick (ButterflyClicked butterfly) ]
             [ cardImage [] [ butterflyImage butterfly.img_src ]
             , cardContent [ textCentered, textSize Small ]
                 [ div []
