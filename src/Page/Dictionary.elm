@@ -156,7 +156,7 @@ update msg model =
                     getSession model
 
                 newSession =
-                    Session.enableModal session butterfly
+                    Session.update (Session.EnableModal butterfly) session
             in
             ( updateSession model newSession, Cmd.none )
 
