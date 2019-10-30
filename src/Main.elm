@@ -11,6 +11,7 @@ import Butterfly.Api as Api
 import Html exposing (Html, div, main_, text)
 import Html.Attributes exposing (class, src)
 import Html.Events exposing (onClick)
+import Modal
 import NavBar
 import Page exposing (Page)
 import Page.Area as Area
@@ -129,7 +130,7 @@ init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
         initSession =
-            S.init key NavBar.init
+            S.init key NavBar.init Modal.init
     in
     changeRouteTo (Route.parseUrl url) (Home initSession)
 
@@ -188,6 +189,7 @@ type Msg
     | GotNavBarMessage NavBar.Msg
     | NoOp
     | MainClicked
+    | GotModalMessage Modal.Msg
 
 
 
@@ -219,6 +221,32 @@ update msg model =
             in
             NavBar.update NavBar.DisableMenu session.navModel
                 |> updateWith (\n -> S.updateNavModel session n |> updateSession model) GotNavBarMessage
+
+        ( GotModalMessage modalMsg, someModel ) ->
+            let
+                session =
+                    getSession someModel
+
+                ( subMsg, subCmd ) =
+                    Modal.update modalMsg session.modalModel
+            in
+            updateWith
+                (\modalModel -> S.updateModalModel session modalModel |> updateSession someModel)
+                GotModalMessage
+                ( subMsg, subCmd )
+
+        ( GotNavBarMessage navMsg, someModel ) ->
+            let
+                session =
+                    getSession someModel
+
+                ( subMsg, subCmd ) =
+                    NavBar.update navMsg session.navModel
+            in
+            updateWith
+                (\navbarModel -> S.updateNavModel session navbarModel |> updateSession someModel)
+                GotNavBarMessage
+                ( subMsg, subCmd )
 
         ( _, _ ) ->
             ( model, Cmd.none )
@@ -277,7 +305,8 @@ toView session page toMsg title content =
 mainView : Session -> Page -> Html Msg -> List (Html Msg)
 mainView session page content =
     [ main_ []
-        [ Html.map GotNavBarMessage <| NavBar.view page session.navModel
+        [ Html.map GotModalMessage <| Modal.view session.modalModel
+        , Html.map GotNavBarMessage <| NavBar.view page session.navModel
         , columns myColumnsModifiers
             [ onClick MainClicked ]
             [ content ]
