@@ -25,6 +25,28 @@
   width: 200px !important;
 }
 
+.butterfly-card {
+  cursor: pointer;
+}
+
 .butterfly-card:hover {
       box-shadow: 0 5px 5px rgba(10,10,10,.3), 0 0 0 1px rgba(10,10,10,.1);
+}
+
+@media screen and (min-width: 769px) {
+  .butterfly-modal {
+    width:  450px;
+  }
+}
+
+.butterfly-modal-content {
+  margin-top: 1em;
+}
+
+.butterfly-modal-content p {
+  margin-bottom:  0 !important;
+}
+
+.butterfly-modal .box{
+  border-radius: 2px;
 }

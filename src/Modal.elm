@@ -1,7 +1,10 @@
 module Modal exposing (..)
 
 import Bulma.Components as B
+import Bulma.Elements as B
+import Bulma.Layout as B
 import Bulma.Modifiers as B
+import Bulma.Modifiers.Typography as B
 import Butterfly.Type as Butterfly exposing (Butterfly)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -38,10 +41,8 @@ view model =
     B.modal (isJust model.mButterfly)
         []
         [ B.modalBackground [ onClick ModalBackgroundClicked ] []
-        , B.modalContent []
-            [ B.modalCard []
-                [ B.modalCardBody [ class "content" ] [ butterflyView model.mButterfly ]
-                ]
+        , B.modalContent [ class "butterfly-modal" ]
+            [ butterflyView model.mButterfly
             ]
         ]
 
@@ -53,7 +54,31 @@ butterflyView mButterfly =
             div [] [ text "This should never happen" ]
 
         Just butterfly ->
-            div [] [ text butterfly.jp_name ]
+            B.box [ class "butterfly-modal-box" ]
+                [ butterflyImage butterfly.img_src
+                , div [ class "content butterfly-modal-content" ]
+                    [ B.title B.H5 [] [ text butterfly.jp_name ]
+                    , h6 [ class "subtitle", B.textColor B.Grey ] [ text butterfly.eng_name ]
+                    , fieldValueView "分類" butterfly.category
+                    , fieldValueView "生息地" butterfly.region
+                    ]
+                ]
+
+
+fieldValueView : String -> String -> Html msg
+fieldValueView field value =
+    p []
+        [ span [ B.textWeight B.Bold ] [ text <| String.concat [ field, ": " ] ]
+        , span [] [ text value ]
+        ]
+
+
+butterflyImage : String -> Html msg
+butterflyImage img_src =
+    B.image B.SixteenByNine
+        []
+        [ img [ src <| String.concat [ "http://biokite.com/worldbutterfly/", img_src ] ] []
+        ]
 
 
 isJust : Maybe a -> Bool
