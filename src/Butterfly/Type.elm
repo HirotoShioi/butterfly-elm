@@ -1,7 +1,8 @@
-module Butterfly.Type exposing (..)
+module Butterfly.Type exposing (Butterfly, Color, Query, Region(..), butterfliesDecoder, filterButterflies, fromRegion, initQuery, toRegion)
 
 import Json.Decode as Decode exposing (Decoder, float, int, list, nullable, string)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
+import Maybe.Extra exposing (unwrap)
 
 
 butterfliesDecoder : Decoder (List Butterfly)
@@ -47,6 +48,120 @@ colorDecoder =
         |> required "pixel_fraction" float
         |> required "score" float
         |> required "hex_color" string
+
+
+type Region
+    = OldNorth
+    | NewNorth
+    | NewTropical
+    | TropicalAfrica
+    | IndiaAustralia
+
+
+fromRegion : Region -> String
+fromRegion region =
+    case region of
+        OldNorth ->
+            "旧北区"
+
+        NewNorth ->
+            "新北区"
+
+        NewTropical ->
+            "新熱帯区"
+
+        IndiaAustralia ->
+            "インド・オーストラリア区"
+
+        TropicalAfrica ->
+            "熱帯アフリカ区"
+
+
+toRegion : String -> Result String Region
+toRegion str =
+    case str of
+        "旧北区" ->
+            Ok OldNorth
+
+        "新北区" ->
+            Ok NewNorth
+
+        "新熱帯区" ->
+            Ok NewTropical
+
+        "インド・オーストラリア区" ->
+            Ok IndiaAustralia
+
+        "熱帯アフリカ区" ->
+            Ok TropicalAfrica
+
+        _ ->
+            Err <| String.concat [ "Unknown region: ", str ]
+
+
+type alias Query =
+    { region : Maybe Region
+    , name : Maybe String
+    , category : Maybe String
+    }
+
+
+initQuery : Query
+initQuery =
+    Query (Just OldNorth) Nothing Nothing
+
+
+toSearchTerms : Query -> List SearchTerm
+toSearchTerms query =
+    let
+        regionTerm =
+            unwrap [] (\r -> [ Region r ]) query.region
+
+        nameTerm =
+            unwrap [] (\n -> [ Name n ]) query.name
+
+        categoryTerm =
+            unwrap [] (\c -> [ Category c ]) query.category
+    in
+    regionTerm ++ nameTerm ++ categoryTerm
+
+
+type SearchTerm
+    = Name String
+    | Region Region
+    | Category String
+
+
+filterByRegion : Region -> List Butterfly -> List Butterfly
+filterByRegion region butterflies =
+    List.filter (\butterfly -> fromRegion region == butterfly.region) butterflies
+
+
+filterButterflies : List Butterfly -> Query -> List Butterfly
+filterButterflies butterflies query =
+    let
+        terms =
+            toSearchTerms query
+    in
+    List.foldl filterByTerm butterflies terms
+
+
+filterByTerm : SearchTerm -> List Butterfly -> List Butterfly
+filterByTerm term butterflies =
+    case term of
+        Name butterflyName ->
+            List.filter
+                (\butterfly ->
+                    String.contains butterflyName butterfly.jpName
+                        || String.contains butterflyName butterfly.engName
+                )
+                butterflies
+
+        Region region ->
+            filterByRegion region butterflies
+
+        Category category ->
+            List.filter (\butterfly -> String.contains category butterfly.category) butterflies
 
 
 

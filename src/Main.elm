@@ -166,10 +166,6 @@ changeRouteTo maybeRoute model =
         Just Route.Error ->
             ( Error session, Cmd.none )
 
-        Just Route.ToggleMenu ->
-            NavBar.update NavBar.ToggleMenu session.navModel
-                |> updateWith (\navmodel -> S.update (S.UpdateNavbar navmodel) session |> updateSession model) GotNavBarMessage
-
 
 
 -- Map over submodel as well as submsg to main
@@ -203,6 +199,9 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     ( model, Nav.pushUrl (getKey model) (Url.toString url) )
+
+                Browser.External "" ->
+                    ( model, Cmd.none )
 
                 Browser.External href ->
                     ( model, Nav.load href )
@@ -317,7 +316,7 @@ mainView session page content =
 sectionView : (msg -> Msg) -> Html msg -> Html Msg
 sectionView toMsg content =
     section NotSpaced
-        [ class "content" ]
+        [ class "content section-view" ]
         [ Html.map toMsg content ]
 
 

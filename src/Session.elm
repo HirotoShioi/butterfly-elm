@@ -1,7 +1,7 @@
 module Session exposing (..)
 
 import Browser.Navigation as Nav
-import Butterfly.Type exposing (Butterfly)
+import Butterfly.Type exposing (Butterfly, Query, Region(..), initQuery)
 import Modal
 import NavBar
 import Page exposing (Page)
@@ -11,6 +11,7 @@ type alias Session =
     { key : Nav.Key
     , navModel : NavBar.Model
     , modalModel : Modal.Model
+    , query : Query
     }
 
 
@@ -20,6 +21,10 @@ type Msg
     | DisableModal
     | DisableMenu
     | EnableModal Butterfly
+    | AddCategory String
+    | ResetCategory
+    | UpdateRegion Region
+    | ResetRegion
 
 
 
@@ -58,10 +63,50 @@ update msg session =
             in
             { session | modalModel = newModalModel }
 
+        AddCategory category ->
+            let
+                query =
+                    session.query
+
+                newQuery =
+                    { query | category = Just category }
+            in
+            { session | query = newQuery }
+
+        ResetCategory ->
+            let
+                query =
+                    session.query
+
+                newQuery =
+                    { query | category = Nothing }
+            in
+            { session | query = newQuery }
+
+        UpdateRegion region ->
+            let
+                query =
+                    session.query
+
+                newQuery =
+                    { query | region = Just region }
+            in
+            { session | query = newQuery }
+
+        ResetRegion ->
+            let
+                query =
+                    session.query
+
+                newQuery =
+                    { query | region = Nothing }
+            in
+            { session | query = newQuery }
+
 
 init : Nav.Key -> NavBar.Model -> Modal.Model -> Session
 init key model modalModel =
-    Session key model modalModel
+    Session key model modalModel initQuery
 
 
 getKey : Session -> Nav.Key

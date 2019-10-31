@@ -14,7 +14,6 @@ type Route
     | Description
     | Area
     | Dictionary
-    | ToggleMenu
     | Error
 
 
@@ -32,7 +31,6 @@ parser =
         , map Description (s "description")
         , map Area (s "area")
         , map Dictionary (s "dictionary")
-        , map ToggleMenu (s "toggle-menu")
         , map Error (s "error")
         ]
 
@@ -64,9 +62,6 @@ routeToString page =
 
                 Dictionary ->
                     [ "dictionary" ]
-
-                ToggleMenu ->
-                    [ "toggle-menu" ]
 
                 Error ->
                     [ "error" ]
