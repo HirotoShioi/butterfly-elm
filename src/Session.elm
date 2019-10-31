@@ -13,6 +13,7 @@ type alias Session =
     , modalModel : Modal.Model
     }
 
+
 type Msg
     = UpdateNavbar NavBar.Model
     | UpdateModal Modal.Model
@@ -20,7 +21,10 @@ type Msg
     | DisableMenu
     | EnableModal Butterfly
 
+
+
 -- Convert to (Session, Cmd Msg)
+
 
 update : Msg -> Session -> Session
 update msg session =

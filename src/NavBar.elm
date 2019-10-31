@@ -7,7 +7,7 @@ import Bulma.Layout exposing (..)
 import Bulma.Modifiers exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onMouseOver, stopPropagationOn)
+import Html.Events exposing (onClick)
 import Json.Decode as Decode exposing (Decoder)
 import Page exposing (Page)
 import Route exposing (Route)
@@ -102,8 +102,19 @@ isActive page route =
 
 myNavbarBurger : Bool -> Html Msg
 myNavbarBurger isMenuOpen =
-    navbarBurger isMenuOpen
-        [ href "toggle-menu" ]
+    let
+        activeClass =
+            if isMenuOpen then
+                "is-active"
+
+            else
+                ""
+    in
+    div
+        [ class "navbar-burger"
+        , onClick ToggleMenu
+        , class activeClass
+        ]
         [ span [] []
         , span [] []
         , span [] []
