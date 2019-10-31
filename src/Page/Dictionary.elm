@@ -165,11 +165,11 @@ showButterflies : Butterfly -> Html Msg
 showButterflies butterfly =
     div [ class "column is-one-third-tablet is-one-fifth-desktop" ]
         [ card [ class "butterfly-card", onClick (ButterflyClicked butterfly) ]
-            [ cardImage [] [ butterflyImage butterfly.img_src ]
+            [ cardImage [] [ butterflyImage butterfly.imgSrc ]
             , cardContent [ textCentered, textSize Small ]
                 [ div []
-                    [ text butterfly.jp_name
-                    , div [ class "content", textColor Grey ] [ text butterfly.eng_name ]
+                    [ text butterfly.jpName
+                    , div [ class "content", textColor Grey ] [ text butterfly.engName ]
                     ]
                 ]
             ]

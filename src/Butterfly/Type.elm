@@ -12,19 +12,19 @@ butterfliesDecoder =
 type alias Butterfly =
     { region : String
     , category : String
-    , img_src : String
-    , pdf_src : String
-    , jp_name : String
-    , eng_name : String
-    , bgcolor : String
-    , dominant_colors : List Color
+    , imgSrc : String
+    , pdfSrc : String
+    , jpName : String
+    , engName : String
+    , bgColor : String
+    , dominantColors : List Color
     }
 
 
 type alias Color =
-    { pixel_fraction : Float
+    { pixelFraction : Float
     , score : Float
-    , hex_color : String
+    , hexColor : String
     }
 
 
