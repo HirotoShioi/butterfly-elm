@@ -5,7 +5,7 @@ import Bulma.Elements as B
 import Bulma.Layout as B
 import Bulma.Modifiers as B
 import Bulma.Modifiers.Typography as B
-import Butterfly.Type as Butterfly exposing (Butterfly)
+import Butterfly.Type as Butterfly exposing (Butterfly, Color)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -55,10 +55,11 @@ butterflyView mButterfly =
 
         Just butterfly ->
             B.box [ class "butterfly-modal-box" ]
-                [ butterflyImage butterfly.img_src
+                [ butterflyImage butterfly.imgSrc
+                , colorBar butterfly.dominantColors
                 , div [ class "content butterfly-modal-content" ]
-                    [ B.title B.H5 [] [ text butterfly.jp_name ]
-                    , h6 [ class "subtitle", B.textColor B.Grey ] [ text butterfly.eng_name ]
+                    [ B.title B.H5 [] [ text butterfly.jpName ]
+                    , h6 [ class "subtitle", B.textColor B.Grey ] [ text butterfly.engName ]
                     , fieldValueView "分類" butterfly.category
                     , fieldValueView "生息地" butterfly.region
                     ]
@@ -89,3 +90,35 @@ isJust mValue =
 
         Just value ->
             True
+
+
+colorBar : List Color -> Html Msg
+colorBar colors =
+    let
+        fractionSum =
+            List.sum <| List.map (\color -> color.pixelFraction) colors
+
+        colorBlocks =
+            List.map (coloBlockView fractionSum) <| List.reverse <| List.sortBy (\color -> color.pixelFraction) colors
+    in
+    div [ class "color-wrapper" ]
+        [ div [ class "color-container" ]
+            colorBlocks
+        ]
+
+
+coloBlockView : Float -> Color -> Html Msg
+coloBlockView fractionSum color =
+    let
+        percentage =
+            color.pixelFraction * 100 / fractionSum
+
+        percentageText =
+            String.concat [ String.fromFloat percentage, "%" ]
+    in
+    div [ class "color", style "width" percentageText, style "background-color" color.hexColor ]
+        []
+
+
+
+-- pixelFraction * 100 / totalPixelFraction
