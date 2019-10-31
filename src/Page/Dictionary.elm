@@ -11,6 +11,7 @@ import Butterfly.Type exposing (Butterfly, Query, Region(..), filterButterflies,
 import Html exposing (..)
 import Html.Attributes as A exposing (..)
 import Html.Events exposing (onBlur, onClick, onFocus, preventDefaultOn)
+import Html.Keyed as Keyed
 import Json.Decode as Json
 import Maybe.Extra exposing (unwrap)
 import Page
@@ -123,31 +124,23 @@ resultView model =
     in
     div [ class "dictionary-view" ]
         [ div [ class "dictionary-search-content" ]
-            [ regionDropdown
-            , categoryDropdown
+            [ div [ class "field is-grouped is-grouped-multiline" ]
+                [ div [ class "control" ] [ regionDropdown ]
+                , div [ class "control" ] [ categoryDropdown ]
+                ]
             ]
         , if List.isEmpty filteredButterflies then
             emptyView
 
           else
-            columns myColumnsModifiers [] <|
-                List.map showButterflies <|
-                    filteredButterflies
+            Keyed.node "div" [ class "columns  is-multiline" ] <|
+                List.map (\butterfly -> ( butterfly.jpName, showButterflies butterfly )) filteredButterflies
         ]
 
 
 emptyView : Html Msg
 emptyView =
     div [] [ text "該当する蝶はみつかりませでした。" ]
-
-
-myColumnsModifiers : ColumnsModifiers
-myColumnsModifiers =
-    { multiline = True
-    , gap = Gap3
-    , display = TabletAndBeyond
-    , centered = False
-    }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

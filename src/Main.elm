@@ -166,10 +166,6 @@ changeRouteTo maybeRoute model =
         Just Route.Error ->
             ( Error session, Cmd.none )
 
-        Just Route.ToggleMenu ->
-            NavBar.update NavBar.ToggleMenu session.navModel
-                |> updateWith (\navmodel -> S.update (S.UpdateNavbar navmodel) session |> updateSession model) GotNavBarMessage
-
 
 
 -- Map over submodel as well as submsg to main
