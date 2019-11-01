@@ -3,6 +3,7 @@ module Page.Dictionary.View exposing (..)
 import Bulma.Components as B
 import Bulma.Elements as B
 import Bulma.Modifiers as B
+import Bulma.Modifiers.Typography as Typo
 import Butterfly.Type exposing (Butterfly, Query, filterButterflies)
 import Html exposing (..)
 import Html.Attributes as A exposing (..)
@@ -107,3 +108,18 @@ loadingView =
 loadingProgressModifiers : B.ProgressModifiers
 loadingProgressModifiers =
     B.ProgressModifiers B.Medium B.Info
+
+
+showButterflies : Butterfly -> (Butterfly -> msg) -> Html msg
+showButterflies butterfly clickedMsg =
+    div [ class "column is-one-third-tablet is-one-fifth-desktop" ]
+        [ B.card [ class "butterfly-card", onClick (clickedMsg butterfly) ]
+            [ B.cardImage [] [ butterflyImage butterfly.imgSrc ]
+            , B.cardContent [ Typo.textCentered, Typo.textSize Typo.Small ]
+                [ div []
+                    [ text butterfly.jpName
+                    , div [ class "content", Typo.textColor Typo.Grey ] [ text butterfly.engName ]
+                    ]
+                ]
+            ]
+        ]
