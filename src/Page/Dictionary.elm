@@ -15,6 +15,7 @@ import Html.Keyed as Keyed
 import Json.Decode as Json
 import Maybe.Extra exposing (unwrap)
 import Page
+import Page.Dictionary.View as View
 import Route
 import Session exposing (Session)
 import Set exposing (Set)
@@ -29,8 +30,9 @@ type Msg
     | CategoryClicked String
     | ToggleColorMenu
     | ColorClicked String
-    | DeleteTag
     | ResetColor
+    | ResetRegion
+    | ResetCategory
 
 
 type Model
@@ -45,6 +47,11 @@ type alias ResultModel =
     , isCategoryMenuOpen : Bool
     , isColorMenuOpen : Bool
     }
+
+
+title : String
+title =
+    Page.dictionaryTitle
 
 
 disableMenus : ResultModel -> ResultModel
@@ -90,86 +97,6 @@ updateSession model session =
 
         Result m ->
             Result { m | session = session }
-
-
-view : Model -> Html Msg
-view model =
-    case model of
-        Loading s ->
-            loadingView
-
-        Result m ->
-            resultView m
-
-
-loadingView : Html Msg
-loadingView =
-    div []
-        [ text "Loading..."
-        , B.progress loadingProgressModifiers [ A.max "100", class "loading" ] [ text "50%" ]
-        ]
-
-
-loadingProgressModifiers : ProgressModifiers
-loadingProgressModifiers =
-    ProgressModifiers Mod.Medium Mod.Info
-
-
-resultView : ResultModel -> Html Msg
-resultView model =
-    let
-        filteredButterflies =
-            filterButterflies model.butterflies model.session.query
-
-        categoryDropdown =
-            mkCategoryDropdown model.butterflies model
-
-        regionDropdown =
-            mkRegionDropdown model
-
-        colorDropdown =
-            mkColorDropdown model
-    in
-    div [ class "dictionary-view" ]
-        [ div [ class "dictionary-search-content" ]
-            [ div [ class "field is-grouped is-grouped-multiline" ]
-                [ div [ class "control" ] [ regionDropdown ]
-                , div [ class "control" ] [ categoryDropdown ]
-                , div [ class "control" ] [ colorDropdown ]
-                , case model.session.query.hexColor of
-                    Nothing ->
-                        div [] []
-
-                    Just color ->
-                        div [ class "control" ] [ colorTag color ResetColor ]
-                ]
-            ]
-        , if List.isEmpty filteredButterflies then
-            emptyView
-
-          else
-            Keyed.node "div" [ class "columns  is-multiline" ] <|
-                List.map (\butterfly -> ( butterfly.jpName, showButterflies butterfly )) filteredButterflies
-        ]
-
-
-colorTag : String -> msg -> Html msg
-colorTag hexString deleteMsg =
-    tagWithDelete colorTagModifiers
-        [ class "color-tag" ]
-        deleteMsg
-        [ div [ style "background-color" hexString, class "color-box" ] []
-        ]
-
-
-colorTagModifiers : TagModifiers
-colorTagModifiers =
-    TagModifiers Mod.Large Mod.Default False
-
-
-emptyView : Html Msg
-emptyView =
-    div [] [ text "該当する蝶はみつかりませでした。" ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -282,15 +209,106 @@ update msg model =
             in
             ( updateSession (Result m) newSession, Cmd.none )
 
+        ( ResetRegion, Result m ) ->
+            let
+                newSession =
+                    Session.update Session.ResetRegion m.session
+            in
+            ( updateSession (Result m) newSession, Cmd.none )
+
+        ( ResetCategory, Result m ) ->
+            let
+                newSession =
+                    Session.update Session.ResetCategory m.session
+            in
+            ( updateSession (Result m) newSession, Cmd.none )
+
         _ ->
             ( model, Cmd.none )
+
+
+view : Model -> Html Msg
+view model =
+    case model of
+        Loading s ->
+            View.loadingView
+
+        Result m ->
+            resultView m
+
+
+resultView : ResultModel -> Html Msg
+resultView model =
+    let
+        filteredButterflies =
+            filterButterflies model.butterflies model.session.query
+
+        categoryDropdown =
+            mkCategoryDropdown model.butterflies model
+
+        regionDropdown =
+            mkRegionDropdown model
+
+        colorDropdown =
+            mkColorDropdown model
+    in
+    div [ class "dictionary-view" ]
+        [ div [ class "dictionary-search-content" ]
+            [ div [ class "field is-grouped is-grouped-multiline" ]
+                [ div [ class "control" ] [ regionDropdown ]
+                , div [ class "control" ] [ categoryDropdown ]
+                , div [ class "control" ] [ colorDropdown ToggleColorMenu ColorClicked ]
+                ]
+            , tagList model.session.query
+            ]
+        , if List.isEmpty filteredButterflies then
+            View.emptyView
+
+          else
+            Keyed.node "div" [ class "columns  is-multiline" ] <|
+                List.map (\butterfly -> ( butterfly.jpName, showButterflies butterfly )) filteredButterflies
+        ]
+
+
+
+--------------------------------------------------------------------------------
+-- Tag
+--------------------------------------------------------------------------------
+
+
+tagList : Query -> Html Msg
+tagList query =
+    let
+        mkTag mValue func =
+            Maybe.withDefault [] <| Maybe.map (\str -> List.singleton <| func str) mValue
+
+        cTag =
+            mkTag query.hexColor (View.colorTag ResetColor)
+
+        categoryTag =
+            mkTag query.category (View.searchTag ResetCategory)
+
+        regionTag =
+            mkTag (Maybe.map fromRegion query.region) (View.searchTag ResetRegion)
+
+        list =
+            List.concat [ regionTag, categoryTag, cTag ]
+    in
+    if List.isEmpty <| list then
+        div [] []
+
+    else
+        div [ class "field is-grouped is-grouped-multiline" ] <|
+            List.map
+                (\ele -> div [ class "control" ] [ ele ])
+                list
 
 
 showButterflies : Butterfly -> Html Msg
 showButterflies butterfly =
     div [ class "column is-one-third-tablet is-one-fifth-desktop" ]
         [ card [ class "butterfly-card", onClick (ButterflyClicked butterfly) ]
-            [ cardImage [] [ butterflyImage butterfly.imgSrc ]
+            [ cardImage [] [ View.butterflyImage butterfly.imgSrc ]
             , cardContent [ textCentered, textSize Small ]
                 [ div []
                     [ text butterfly.jpName
@@ -301,81 +319,44 @@ showButterflies butterfly =
         ]
 
 
-butterflyImage : String -> Html msg
-butterflyImage img_src =
-    image SixteenByNine
-        []
-        [ img [ src <| String.concat [ "http://biokite.com/worldbutterfly/", img_src ] ] []
-        ]
-
-
-title : String
-title =
-    Page.dictionaryTitle
-
-
-
---------------------------------------------------------------------------------
--- Dropdown
---------------------------------------------------------------------------------
-
-
 mkRegionDropdown : ResultModel -> Html Msg
 mkRegionDropdown model =
     let
-        activeRegion =
-            Maybe.withDefault "生息地" (Maybe.map fromRegion model.session.query.region)
-
         regionList =
             List.map fromRegion [ OldNorth, NewNorth, NewTropical, TropicalAfrica, IndiaAustralia ]
-
-        regionListWithReset =
-            case model.session.query.region of
-                Just _ ->
-                    "生息地" :: regionList
-
-                Nothing ->
-                    regionList
     in
-    searchDropdown activeRegion regionListWithReset ToggleRegionMenu model.isRegionMenuOpen False RegionClicked
+    View.searchDropdown "生息地" regionList ToggleRegionMenu model.isRegionMenuOpen False RegionClicked
 
 
 mkCategoryDropdown : List Butterfly -> ResultModel -> Html Msg
 mkCategoryDropdown butterflies model =
     let
-        activeCategory =
-            Maybe.withDefault "分類" model.session.query.category
-
         categoryList =
             Set.toList <| mkCategorySet model.session.query butterflies
-
-        categoryListWithReset =
-            case model.session.query.category of
-                Nothing ->
-                    categoryList
-
-                Just _ ->
-                    "分類" :: categoryList
     in
-    searchDropdown
-        activeCategory
-        categoryListWithReset
+    View.searchDropdown
+        "分類"
+        categoryList
         ToggleCategoryMenu
         model.isCategoryMenuOpen
         (List.isEmpty categoryList)
         CategoryClicked
 
 
+mkCategorySet : Query -> List Butterfly -> Set String
+mkCategorySet query butterflies =
+    let
+        cQuery =
+            { query | category = Nothing }
 
--- div [ class "field is-grouped is-grouped-multiline" ]
---                 [ div [ class "control" ] [ regionDropdown ]
---                 , div [ class "control" ] [ categoryDropdown ]
---                 , div [ class "control" ] [ colorDropdown ]
---                 ]
+        filteredButterflies =
+            filterButterflies butterflies cQuery
+    in
+    List.foldr (\butterfly set -> Set.insert butterfly.category set) Set.empty filteredButterflies
 
 
-mkColorDropdown : ResultModel -> Html Msg
-mkColorDropdown resultModel =
+mkColorDropdown : ResultModel -> msg -> (String -> msg) -> Html msg
+mkColorDropdown resultModel toggleMsg clickedMsg =
     let
         colorList =
             [ "#e60012"
@@ -395,7 +376,7 @@ mkColorDropdown resultModel =
     dropdown resultModel.isColorMenuOpen
         dropdownModifiers
         []
-        [ searchDropdownTrigger ToggleColorMenu "色" False
+        [ View.searchDropdownTrigger toggleMsg "色" False
         , dropdownMenu []
             [ class "color-palette-wrapper" ]
             [ dropdownItem False
@@ -403,75 +384,9 @@ mkColorDropdown resultModel =
                 [ div [ class "color-palette field is-grouped is-grouped-multiline" ] <|
                     List.map
                         (\hexColor ->
-                            div [ class "control color-palette-item", style "background-color" hexColor, onClick (ColorClicked hexColor) ] []
+                            div [ class "control color-palette-item", style "background-color" hexColor, onClick (clickedMsg hexColor) ] []
                         )
                         colorList
                 ]
             ]
         ]
-
-
-searchDropdown :
-    String -- Active link
-    -> List String -- List of items
-    -> Msg -- Toggle Msg
-    -> Bool -- Bool flag for menu status
-    -> Bool -- Bool flag for trigger disabled attribute
-    -> (String -> Msg) -- Msg used to send clicked item
-    -> Html Msg
-searchDropdown activeLink list toggleMsg isMenuOpen isDisabled clickMsg =
-    dropdown isMenuOpen
-        dropdownModifiers
-        []
-        [ searchDropdownTrigger toggleMsg activeLink isDisabled
-        , searchDropdownMenu activeLink list clickMsg
-        ]
-
-
-searchDropdownTrigger : Msg -> String -> Bool -> Html Msg
-searchDropdownTrigger toggleMsg buttonName isDisabled =
-    div [ class "dropdown-trigger" ]
-        [ Html.button
-            [ onClick toggleMsg
-            , attribute "aria-haspopup" "true"
-            , attribute "aria-controls" "dropdown-menu"
-            , disabled isDisabled
-            , class "button"
-            ]
-            [ span [] [ text buttonName ]
-            , span [ class "icon is-small" ]
-                [ i [ class "fas fa-angle-down", attribute "aria-hidden" "true" ] []
-                ]
-            ]
-        ]
-
-
-searchDropdownMenu : String -> List String -> (String -> Msg) -> Html Msg
-searchDropdownMenu active list clickedMsg =
-    let
-        isActive str =
-            active == str
-    in
-    dropdownMenu [] [] <|
-        List.map
-            (\element ->
-                dropdownItemLink (isActive element) [ onClickAnchor (clickedMsg element) ] [ text element ]
-            )
-            list
-
-
-mkCategorySet : Query -> List Butterfly -> Set String
-mkCategorySet query butterflies =
-    let
-        cQuery =
-            { query | category = Nothing }
-
-        filteredButterflies =
-            filterButterflies butterflies cQuery
-    in
-    List.foldr (\butterfly set -> Set.insert butterfly.category set) Set.empty filteredButterflies
-
-
-onClickAnchor : msg -> Attribute msg
-onClickAnchor msg =
-    preventDefaultOn "click" <| Json.succeed ( msg, True )
