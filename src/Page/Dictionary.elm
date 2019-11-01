@@ -1,20 +1,13 @@
-module Page.Dictionary exposing (..)
+module Page.Dictionary exposing (Model, Msg(..), getKey, getSession, init, update, updateSession, view)
 
 import Browser.Navigation as Nav
-import Bulma.Columns exposing (..)
-import Bulma.Components exposing (..)
-import Bulma.Elements as B exposing (..)
-import Bulma.Modifiers as Mod
-import Bulma.Modifiers.Typography exposing (..)
+import Bulma.Components as Components
 import Butterfly.Api as Api exposing (Msg(..))
 import Butterfly.Type exposing (Butterfly, Query, Region(..), filterButterflies, fromRegion, toRegion)
-import Html exposing (..)
-import Html.Attributes as A exposing (..)
-import Html.Events exposing (onBlur, onClick, onFocus, preventDefaultOn)
+import Html exposing (Html, div)
+import Html.Attributes exposing (class, style)
+import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
-import Json.Decode as Json
-import Maybe.Extra exposing (unwrap)
-import Page
 import Page.Dictionary.View as View
 import Route
 import Session exposing (Session)
@@ -47,11 +40,6 @@ type alias ResultModel =
     , isCategoryMenuOpen : Bool
     , isColorMenuOpen : Bool
     }
-
-
-title : String
-title =
-    Page.dictionaryTitle
 
 
 disableMenus : ResultModel -> ResultModel
@@ -114,7 +102,7 @@ update msg model =
                     in
                     initResult session bs
 
-                Api.GotButterflies (Err err) ->
+                Api.GotButterflies (Err _) ->
                     let
                         key =
                             getKey model
@@ -134,11 +122,7 @@ update msg model =
         ( CategoryClicked category, Result m ) ->
             let
                 newSession =
-                    if String.contains "分類" category then
-                        Session.update Session.ResetCategory m.session
-
-                    else
-                        Session.update (Session.AddCategory category) m.session
+                    Session.update (Session.AddCategory category) m.session
 
                 updatedModel =
                     disableMenus m
@@ -146,30 +130,19 @@ update msg model =
             ( updateSession (Result updatedModel) newSession, Cmd.none )
 
         ( RegionClicked regionStr, Result m ) ->
-            if String.contains "生息地" regionStr then
-                let
-                    newSession =
-                        Session.update Session.ResetRegion m.session
+            case toRegion regionStr of
+                Err _ ->
+                    ( model, Cmd.none )
 
-                    updatedModel =
-                        disableMenus m
-                in
-                ( updateSession (Result updatedModel) newSession, Cmd.none )
+                Ok region ->
+                    let
+                        newSession =
+                            Session.update (Session.UpdateRegion region) m.session
 
-            else
-                case toRegion regionStr of
-                    Err _ ->
-                        ( model, Cmd.none )
-
-                    Ok region ->
-                        let
-                            newSession =
-                                Session.update (Session.UpdateRegion region) m.session
-
-                            updatedModel =
-                                disableMenus m
-                        in
-                        ( updateSession (Result updatedModel) newSession, Cmd.none )
+                        updatedModel =
+                            disableMenus m
+                    in
+                    ( updateSession (Result updatedModel) newSession, Cmd.none )
 
         ( ColorClicked hexString, Result m ) ->
             let
@@ -227,10 +200,16 @@ update msg model =
             ( model, Cmd.none )
 
 
+
+--------------------------------------------------------------------------------
+-- View
+--------------------------------------------------------------------------------
+
+
 view : Model -> Html Msg
 view model =
     case model of
-        Loading s ->
+        Loading _ ->
             View.loadingView
 
         Result m ->
@@ -266,14 +245,12 @@ resultView model =
 
           else
             Keyed.node "div" [ class "columns  is-multiline" ] <|
-                List.map (\butterfly -> ( butterfly.jpName, showButterflies butterfly )) filteredButterflies
+                List.map
+                    (\butterfly ->
+                        ( butterfly.jpName, View.showButterflies butterfly ButterflyClicked )
+                    )
+                    filteredButterflies
         ]
-
-
-
---------------------------------------------------------------------------------
--- Tag
---------------------------------------------------------------------------------
 
 
 tagList : Query -> Html Msg
@@ -302,21 +279,6 @@ tagList query =
             List.map
                 (\ele -> div [ class "control" ] [ ele ])
                 list
-
-
-showButterflies : Butterfly -> Html Msg
-showButterflies butterfly =
-    div [ class "column is-one-third-tablet is-one-fifth-desktop" ]
-        [ card [ class "butterfly-card", onClick (ButterflyClicked butterfly) ]
-            [ cardImage [] [ View.butterflyImage butterfly.imgSrc ]
-            , cardContent [ textCentered, textSize Small ]
-                [ div []
-                    [ text butterfly.jpName
-                    , div [ class "content", textColor Grey ] [ text butterfly.engName ]
-                    ]
-                ]
-            ]
-        ]
 
 
 mkRegionDropdown : ResultModel -> Html Msg
@@ -373,18 +335,23 @@ mkColorDropdown resultModel toggleMsg clickedMsg =
             , "#e5004f"
             ]
     in
-    dropdown resultModel.isColorMenuOpen
-        dropdownModifiers
+    Components.dropdown resultModel.isColorMenuOpen
+        Components.dropdownModifiers
         []
         [ View.searchDropdownTrigger toggleMsg "色" False
-        , dropdownMenu []
+        , Components.dropdownMenu []
             [ class "color-palette-wrapper" ]
-            [ dropdownItem False
+            [ Components.dropdownItem False
                 []
                 [ div [ class "color-palette field is-grouped is-grouped-multiline" ] <|
                     List.map
                         (\hexColor ->
-                            div [ class "control color-palette-item", style "background-color" hexColor, onClick (clickedMsg hexColor) ] []
+                            div
+                                [ class "control color-palette-item"
+                                , style "background-color" hexColor
+                                , onClick (clickedMsg hexColor)
+                                ]
+                                []
                         )
                         colorList
                 ]

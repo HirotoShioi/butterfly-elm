@@ -2,8 +2,8 @@ module Butterfly.Type exposing (Butterfly, Color, Query, Region(..), butterflies
 
 import Chroma.Chroma as Chroma
 import Chroma.Types exposing (ExtColor)
-import Json.Decode as Decode exposing (Decoder, float, int, list, nullable, string)
-import Json.Decode.Pipeline exposing (hardcoded, optional, required)
+import Json.Decode as Decode exposing (Decoder, float, list, string)
+import Json.Decode.Pipeline exposing (required)
 import Maybe.Extra exposing (unwrap)
 
 

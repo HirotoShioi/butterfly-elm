@@ -1,10 +1,9 @@
-module Session exposing (..)
+module Session exposing (Msg(..), Session, getKey, init, update)
 
 import Browser.Navigation as Nav
 import Butterfly.Type exposing (Butterfly, Query, Region(..), initQuery)
 import Modal
 import NavBar
-import Page exposing (Page)
 
 
 type alias Session =
@@ -46,24 +45,10 @@ update msg session =
             { session | navModel = NavBar.init }
 
         DisableModal ->
-            let
-                modalModel =
-                    session.modalModel
-
-                newModalModel =
-                    { modalModel | mButterfly = Nothing }
-            in
-            { session | modalModel = newModalModel }
+            { session | modalModel = Nothing }
 
         EnableModal butterfly ->
-            let
-                modalModel =
-                    session.modalModel
-
-                newModalModel =
-                    { modalModel | mButterfly = Just butterfly }
-            in
-            { session | modalModel = newModalModel }
+            { session | modalModel = Just butterfly }
 
         AddCategory category ->
             let

@@ -1,15 +1,8 @@
-module Page.Error exposing (..)
+module Page.Error exposing (view)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Page
-
-
-title : String
-title =
-    Page.errorTitle
+import Html exposing (Html, div, text)
 
 
 view : Html msg
 view =
-    div [] [ text "Someting occured while loading" ]
+    div [] [ text "ページを読み込み中に問題が発生しました。インターネットの接続を確認してください。" ]

@@ -1,19 +1,16 @@
-module Modal exposing (..)
+module Modal exposing (Model, Msg(..), init, update, view)
 
-import Bulma.Components as B
-import Bulma.Elements as B
-import Bulma.Layout as B
-import Bulma.Modifiers as B
-import Bulma.Modifiers.Typography as B
-import Butterfly.Type as Butterfly exposing (Butterfly, Color)
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Bulma.Components exposing (modal, modalBackground, modalContent)
+import Bulma.Elements exposing (ImageShape(..), TitleSize(..), box, image, title)
+import Bulma.Modifiers.Typography exposing (Color(..), Weight(..), textColor, textWeight)
+import Butterfly.Type exposing (Butterfly, Color)
+import Html exposing (Html, div, h6, img, p, span, text)
+import Html.Attributes exposing (class, src, style)
 import Html.Events exposing (onClick)
 
 
 type alias Model =
-    { mButterfly : Maybe Butterfly
-    }
+    Maybe Butterfly
 
 
 type Msg
@@ -23,26 +20,26 @@ type Msg
 
 init : Model
 init =
-    Model Nothing
+    Nothing
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg _ =
     case msg of
         ModalBackgroundClicked ->
-            ( { model | mButterfly = Nothing }, Cmd.none )
+            ( Nothing, Cmd.none )
 
         ModalEnabled butterfly ->
-            ( { model | mButterfly = Just butterfly }, Cmd.none )
+            ( Just butterfly, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
-    B.modal (isJust model.mButterfly)
+    modal (isJust model)
         []
-        [ B.modalBackground [ onClick ModalBackgroundClicked ] []
-        , B.modalContent [ class "butterfly-modal" ]
-            [ butterflyView model.mButterfly
+        [ modalBackground [ onClick ModalBackgroundClicked ] []
+        , modalContent [ class "butterfly-modal" ]
+            [ butterflyView model
             ]
         ]
 
@@ -54,12 +51,12 @@ butterflyView mButterfly =
             div [] [ text "This should never happen" ]
 
         Just butterfly ->
-            B.box [ class "butterfly-modal-box" ]
+            box [ class "butterfly-modal-box" ]
                 [ butterflyImage butterfly.imgSrc
                 , colorBar butterfly.dominantColors
                 , div [ class "content butterfly-modal-content" ]
-                    [ B.title B.H5 [] [ text butterfly.jpName ]
-                    , h6 [ class "subtitle", B.textColor B.Grey ] [ text butterfly.engName ]
+                    [ title H5 [] [ text butterfly.jpName ]
+                    , h6 [ class "subtitle", textColor Grey ] [ text butterfly.engName ]
                     , fieldValueView "分類" butterfly.category
                     , fieldValueView "生息地" butterfly.region
                     ]
@@ -69,14 +66,14 @@ butterflyView mButterfly =
 fieldValueView : String -> String -> Html msg
 fieldValueView field value =
     p []
-        [ span [ B.textWeight B.Bold ] [ text <| String.concat [ field, ": " ] ]
+        [ span [ textWeight Bold ] [ text <| String.concat [ field, ": " ] ]
         , span [] [ text value ]
         ]
 
 
 butterflyImage : String -> Html msg
 butterflyImage img_src =
-    B.image B.SixteenByNine
+    image SixteenByNine
         []
         [ img [ src <| String.concat [ "http://biokite.com/worldbutterfly/", img_src ] ] []
         ]
@@ -88,7 +85,7 @@ isJust mValue =
         Nothing ->
             False
 
-        Just value ->
+        Just _ ->
             True
 
 

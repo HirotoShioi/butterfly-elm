@@ -1,15 +1,13 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
-import Bulma.Columns exposing (..)
-import Bulma.Components exposing (..)
-import Bulma.Elements exposing (..)
-import Bulma.Layout exposing (..)
-import Bulma.Modifiers exposing (..)
-import Butterfly.Api as Api
+import Bulma.Columns exposing (ColumnsModifiers, Display(..), Gap(..), columns)
+import Bulma.Elements exposing (TitleSize(..), title)
+import Bulma.Layout exposing (HeroModifiers, SectionSpacing(..), hero, heroBody, section)
+import Bulma.Modifiers exposing (Color(..), Size(..))
 import Html exposing (Html, div, main_, text)
-import Html.Attributes exposing (class, src)
+import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Modal
 import NavBar
@@ -270,42 +268,48 @@ view : Model -> Browser.Document Msg
 view model =
     case model of
         Error s ->
-            toViewNoOp s Page.Error Error.title Error.view
+            toViewNoOp s Page.Error Error.view
 
         NotFound s ->
-            toViewNoOp s Page.NotFound NotFound.title NotFound.view
+            toViewNoOp s Page.NotFound NotFound.view
 
         Home s ->
-            toViewNoOp s Page.Home Home.title Home.view
+            toViewNoOp s Page.Home Home.view
 
         Reference s ->
-            toViewNoOp s Page.Reference Ref.title Ref.view
+            toViewNoOp s Page.Reference Ref.view
 
         Category s ->
-            toViewNoOp s Page.Category Category.title Category.view
+            toViewNoOp s Page.Category Category.view
 
         Description s ->
-            toViewNoOp s Page.Description Desc.title Desc.view
+            toViewNoOp s Page.Description Desc.view
 
         Area s ->
-            toViewNoOp s Page.Area Area.title Area.view
+            toViewNoOp s Page.Area Area.view
 
         Dictionary submodel ->
-            toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMessage Dic.title (Dic.view submodel)
+            toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMessage (Dic.view submodel)
 
 
-toViewNoOp : Session -> Page -> String -> Html msg -> Browser.Document Msg
-toViewNoOp session page title content =
+toViewNoOp : Session -> Page -> Html msg -> Browser.Document Msg
+toViewNoOp session page content =
     let
+        title =
+            Page.toTitle page
+
         body =
             mainView session page (heroView title (\_ -> NoOp) content)
     in
     Browser.Document title body
 
 
-toView : Session -> Page -> (msg -> Msg) -> String -> Html msg -> Browser.Document Msg
-toView session page toMsg title content =
+toView : Session -> Page -> (msg -> Msg) -> Html msg -> Browser.Document Msg
+toView session page toMsg content =
     let
+        title =
+            Page.toTitle page
+
         body =
             mainView session page (sectionView toMsg content)
     in

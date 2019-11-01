@@ -1,10 +1,7 @@
-module Page.Category exposing (..)
+module Page.Category exposing (view)
 
-import Bulma.Elements as B
-import Bulma.Modifiers.Typography exposing (..)
-import Html exposing (..)
-import Html.Attributes exposing (class, src)
-import Page
+import Bulma.Elements exposing (TitleSize(..), title)
+import Html exposing (Html, div, p, text)
 import Page.Components as C
 
 
@@ -43,14 +40,9 @@ view =
         ]
 
 
-title : String
-title =
-    Page.categoryTitle
-
-
 categoryView : String -> String -> Html msg
 categoryView t content =
     div []
-        [ B.title B.H5 [] [ text t ]
+        [ title H5 [] [ text t ]
         , p [] [ text content ]
         ]

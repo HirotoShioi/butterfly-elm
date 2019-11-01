@@ -1,9 +1,7 @@
-module Page.Reference exposing (..)
+module Page.Reference exposing (view)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Page
-import Page.Components as C
+import Html exposing (Html, div, li, text, ul)
+import Page.Components exposing (her, sectionHeader)
 
 
 view : Html msg
@@ -20,7 +18,7 @@ view =
             , "村田泰隆：夢蝶美,保育者"
             , "藤岡知夫編・築山洋・千葉秀行：日本産蝶類及び世界近縁種大図鑑Ⅰ，出版芸術社， 1997"
             ]
-        , C.her
+        , her
         , referenceView "アジアの蝶"
             [ "五十嵐邁・福田：アジア産蝶類生活史図鑑Ⅰ/Ⅱ，東海大学出版会， 1997/2000"
             , "白水・川副・若林；原色日本蝶類図鑑，保育社， 1976"
@@ -31,30 +29,30 @@ view =
             , "W.A.Fleming：Butterflies of West Malaysia and Singapore，Classy Publications， 1975"
             , "B.D'Abrera：Butterflies of Austrarian Regions， 1990"
             ]
-        , C.her
+        , her
         , referenceView "ヨーロッパの蝶"
             [ "L.G.Higgins・N.D.Riley：A Field Guide to the Butterflies of Britain and Europe， 1970"
             , "G?nter Ebert：Die Schmetteringe Baden-W?rttembergs Band1 Tagfalter， 1991"
             , "G?nter Ebert：Die Schmetteringe Baden-W?rttembergs Band2 Tagfalter， 1991"
             ]
-        , C.her
+        , her
         , referenceView "アフリカの蝶"
             [ "R.H.Carcasson：Collins Handguide to the Butterflies of Africa，Collins London，1980"
             , "B.D'Abrera：Butterflies of Afrotropical Region，1990"
             ]
-        , C.her
+        , her
         , referenceView "北米の蝶"
             [ "W.H.Howe：The Butterflies of North America， 1975"
             , "J.A.Scott：The Butterflies of North America， 1986"
             , "R.M.Pyle：The Audubon Society A Field Guide to the Butterflies of North America，A.A.Knopf， 1970"
             , "Marcus Schneck：North Amercan Butterflies Wall Chart"
             ]
-        , C.her
+        , her
         , referenceView "中南米の蝶"
             [ "Bernard D'Abrera：Butterflie of South America，Hill House， 1984"
             , "B.D'Abrera：Butterflies of the Neotropical Region Ⅰ～Ⅳ， 1987"
             ]
-        , C.her
+        , her
         , referenceView "飛翔理論"
             [ "T.Itoh , K.Ootsuta &bSakishita:A new approach to Atomspheric Mechanics Education, AIAA-99-4264"
             ]
@@ -69,12 +67,7 @@ refList name =
 referenceView : String -> List String -> Html msg
 referenceView t booklist =
     div []
-        [ C.sectionHeader t
+        [ sectionHeader t
         , ul [] <|
             List.map refList booklist
         ]
-
-
-title : String
-title =
-    Page.referenceTitle
