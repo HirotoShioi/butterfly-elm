@@ -25,6 +25,8 @@ type Msg
     | ResetCategory
     | UpdateRegion Region
     | ResetRegion
+    | UpdateColor String
+    | ResetColor
 
 
 
@@ -100,6 +102,26 @@ update msg session =
 
                 newQuery =
                     { query | region = Nothing }
+            in
+            { session | query = newQuery }
+
+        UpdateColor hexString ->
+            let
+                query =
+                    session.query
+
+                newQuery =
+                    { query | hexColor = Just hexString }
+            in
+            { session | query = newQuery }
+
+        ResetColor ->
+            let
+                query =
+                    session.query
+
+                newQuery =
+                    { query | hexColor = Nothing }
             in
             { session | query = newQuery }
 

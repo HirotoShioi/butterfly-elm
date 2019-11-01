@@ -219,7 +219,12 @@ update msg model =
                     getSession somemodel
             in
             NavBar.update NavBar.DisableMenu session.navModel
-                |> updateWith (\navmodel -> S.update (S.UpdateNavbar navmodel) session |> updateSession model) GotNavBarMessage
+                |> updateWith
+                    (\navmodel ->
+                        S.update (S.UpdateNavbar navmodel) session
+                            |> updateSession model
+                    )
+                    GotNavBarMessage
 
         ( GotModalMessage modalMsg, someModel ) ->
             let
@@ -230,7 +235,10 @@ update msg model =
                     Modal.update modalMsg session.modalModel
             in
             updateWith
-                (\modalModel -> S.update (S.UpdateModal modalModel) session |> updateSession someModel)
+                (\modalModel ->
+                    S.update (S.UpdateModal modalModel) session
+                        |> updateSession someModel
+                )
                 GotModalMessage
                 ( subMsg, subCmd )
 
@@ -243,7 +251,10 @@ update msg model =
                     NavBar.update navMsg session.navModel
             in
             updateWith
-                (\navbarModel -> S.update (S.UpdateNavbar navbarModel) session |> updateSession someModel)
+                (\navbarModel ->
+                    S.update (S.UpdateNavbar navbarModel) session
+                        |> updateSession someModel
+                )
                 GotNavBarMessage
                 ( subMsg, subCmd )
 

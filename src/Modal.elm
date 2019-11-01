@@ -95,11 +95,10 @@ isJust mValue =
 colorBar : List Color -> Html Msg
 colorBar colors =
     let
-        fractionSum =
-            List.sum <| List.map (\color -> color.pixelFraction) colors
-
         colorBlocks =
-            List.map (coloBlockView fractionSum) <| List.reverse <| List.sortBy (\color -> color.pixelFraction) colors
+            List.sortBy (\color -> color.pixelFraction) colors
+                |> List.reverse
+                |> List.map coloBlockView
     in
     div [ class "color-wrapper" ]
         [ div [ class "color-container" ]
@@ -107,11 +106,11 @@ colorBar colors =
         ]
 
 
-coloBlockView : Float -> Color -> Html Msg
-coloBlockView fractionSum color =
+coloBlockView : Color -> Html Msg
+coloBlockView color =
     let
         percentage =
-            color.pixelFraction * 100 / fractionSum
+            color.pixelFraction * 100
 
         percentageText =
             String.concat [ String.fromFloat percentage, "%" ]
