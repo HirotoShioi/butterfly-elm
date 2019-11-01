@@ -1,5 +1,7 @@
 module Butterfly.Type exposing (Butterfly, Color, Query, Region(..), butterfliesDecoder, filterButterflies, fromRegion, initQuery, toRegion)
 
+import Chroma.Chroma as Chroma
+import Chroma.Types exposing (ExtColor)
 import Json.Decode as Decode exposing (Decoder, float, int, list, nullable, string)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Maybe.Extra exposing (unwrap)
@@ -39,7 +41,29 @@ butterflyDecoder =
         |> required "jp_name" string
         |> required "eng_name" string
         |> required "bgcolor" string
-        |> required "dominant_colors" (list colorDecoder)
+        |> required "dominant_colors" (list colorDecoder |> Decode.map computePercentage)
+
+
+computePercentage : List Color -> List Color
+computePercentage colors =
+    let
+        filteredColors =
+            List.filter (\c -> c.score > 0.05) colors
+
+        fractionSum =
+            List.foldl (\color acc -> color.pixelFraction + acc) 0 filteredColors
+
+        updateFraction color =
+            { color | pixelFraction = color.pixelFraction / fractionSum }
+    in
+    if
+        fractionSum == 0
+        -- If sum is 0, then return an empty list
+    then
+        []
+
+    else
+        List.map updateFraction filteredColors
 
 
 colorDecoder : Decoder Color
@@ -103,12 +127,14 @@ type alias Query =
     { region : Maybe Region
     , name : Maybe String
     , category : Maybe String
+    , hexColor : Maybe String
+    , colorDistance : Float
     }
 
 
 initQuery : Query
 initQuery =
-    Query (Just OldNorth) Nothing Nothing
+    Query (Just OldNorth) Nothing Nothing (Just "#00ccdd") 100
 
 
 toSearchTerms : Query -> List SearchTerm
@@ -122,32 +148,27 @@ toSearchTerms query =
 
         categoryTerm =
             unwrap [] (\c -> [ Category c ]) query.category
+
+        hexStringTerm =
+            unwrap [] (\h -> [ HexColor h query.colorDistance ]) query.hexColor
     in
-    regionTerm ++ nameTerm ++ categoryTerm
+    regionTerm ++ nameTerm ++ categoryTerm ++ hexStringTerm
 
 
 type SearchTerm
     = Name String
     | Region Region
     | Category String
-
-
-filterByRegion : Region -> List Butterfly -> List Butterfly
-filterByRegion region butterflies =
-    List.filter (\butterfly -> fromRegion region == butterfly.region) butterflies
+    | HexColor String Float
 
 
 filterButterflies : List Butterfly -> Query -> List Butterfly
 filterButterflies butterflies query =
-    let
-        terms =
-            toSearchTerms query
-    in
-    List.foldl filterByTerm butterflies terms
+    toSearchTerms query |> List.foldl runFilter butterflies
 
 
-filterByTerm : SearchTerm -> List Butterfly -> List Butterfly
-filterByTerm term butterflies =
+runFilter : SearchTerm -> List Butterfly -> List Butterfly
+runFilter term butterflies =
     case term of
         Name butterflyName ->
             List.filter
@@ -158,10 +179,32 @@ filterByTerm term butterflies =
                 butterflies
 
         Region region ->
-            filterByRegion region butterflies
+            List.filter (\butterfly -> fromRegion region == butterfly.region) butterflies
 
         Category category ->
             List.filter (\butterfly -> String.contains category butterfly.category) butterflies
+
+        HexColor hexString distance ->
+            filterBySimilarColor distance hexString butterflies
+
+
+filterBySimilarColor : Float -> String -> List Butterfly -> List Butterfly
+filterBySimilarColor distance hexColor butterflies =
+    Chroma.chroma hexColor
+        |> Result.map (\c -> List.filter (isSimilarColor c distance) butterflies)
+        |> Result.withDefault []
+
+
+isSimilarColor : ExtColor -> Float -> Butterfly -> Bool
+isSimilarColor color distance butterfly =
+    let
+        isWithinRange hexString =
+            Chroma.chroma hexString
+                |> Result.map (\someColor -> Chroma.distance255 color someColor <= distance)
+                |> Result.withDefault False
+    in
+    List.filter (\colors -> colors.pixelFraction >= 0.1) butterfly.dominantColors
+        |> List.any (\c -> isWithinRange c.hexColor)
 
 
 

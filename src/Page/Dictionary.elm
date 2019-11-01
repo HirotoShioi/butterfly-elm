@@ -284,7 +284,7 @@ mkRegionDropdown model =
                 Nothing ->
                     regionList
     in
-    searchDropdown activeRegion regionListWithReset ToggleRegionMenu model.isRegionMenuOpen RegionClicked
+    searchDropdown activeRegion regionListWithReset ToggleRegionMenu model.isRegionMenuOpen False RegionClicked
 
 
 mkCategoryDropdown : List Butterfly -> ResultModel -> Html Msg
@@ -294,7 +294,7 @@ mkCategoryDropdown butterflies model =
             Maybe.withDefault "分類" model.session.query.category
 
         categoryList =
-            Set.toList <| mkCategorySet model.session.query.region butterflies
+            Set.toList <| mkCategorySet model.session.query butterflies
 
         categoryListWithReset =
             case model.session.query.category of
@@ -304,26 +304,27 @@ mkCategoryDropdown butterflies model =
                 Just _ ->
                     "分類" :: categoryList
     in
-    searchDropdown activeCategory categoryListWithReset ToggleCategoryMenu model.isCategoryMenuOpen CategoryClicked
+    searchDropdown activeCategory categoryListWithReset ToggleCategoryMenu model.isCategoryMenuOpen (List.isEmpty categoryList) CategoryClicked
 
 
-searchDropdown : String -> List String -> Msg -> Bool -> (String -> Msg) -> Html Msg
-searchDropdown activeLink list toggleMsg isMenuOpen clickMsg =
+searchDropdown : String -> List String -> Msg -> Bool -> Bool -> (String -> Msg) -> Html Msg
+searchDropdown activeLink list toggleMsg isMenuOpen isDisabled clickMsg =
     dropdown isMenuOpen
         dropdownModifiers
         []
-        [ searchDropdownTrigger toggleMsg activeLink
+        [ searchDropdownTrigger toggleMsg activeLink isDisabled
         , searchDropdownMenu activeLink list clickMsg
         ]
 
 
-searchDropdownTrigger : Msg -> String -> Html Msg
-searchDropdownTrigger toggleMsg buttonName =
+searchDropdownTrigger : Msg -> String -> Bool -> Html Msg
+searchDropdownTrigger toggleMsg buttonName isDisabled =
     div [ class "dropdown-trigger" ]
         [ Html.button
             [ onFocus toggleMsg
             , attribute "aria-haspopup" "true"
             , attribute "aria-controls" "dropdown-menu"
+            , disabled isDisabled
             , class "button"
             ]
             [ span [] [ text buttonName ]
@@ -348,14 +349,14 @@ searchDropdownMenu active list clickedMsg =
             list
 
 
-mkCategorySet : Maybe Region -> List Butterfly -> Set String
-mkCategorySet mRegion butterflies =
+mkCategorySet : Query -> List Butterfly -> Set String
+mkCategorySet query butterflies =
     let
-        query =
-            Query mRegion Nothing Nothing
+        cQuery =
+            { query | category = Nothing }
 
         filteredButterflies =
-            filterButterflies butterflies query
+            filterButterflies butterflies cQuery
     in
     List.foldr (\butterfly set -> Set.insert butterfly.category set) Set.empty filteredButterflies
 
