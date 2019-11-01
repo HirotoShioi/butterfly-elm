@@ -48,11 +48,11 @@ view page isOpen =
         , navbarMenu isOpen
             []
             [ navbarStart []
-                [ navLink page Route.Dictionary Page.dictionaryTitle
-                , navLink page Route.Description Page.descriptionTitle
-                , navLink page Route.Category Page.categoryTitle
-                , navLink page Route.Area Page.areaTitle
-                , navLink page Route.Reference Page.referenceTitle
+                [ navLink page Route.Dictionary <| Page.toTitle Page.Dictionary
+                , navLink page Route.Description <| Page.toTitle Page.Description
+                , navLink page Route.Category <| Page.toTitle Page.Category
+                , navLink page Route.Area <| Page.toTitle Page.Area
+                , navLink page Route.Reference <| Page.toTitle Page.Reference
                 ]
             , navbarEnd [] []
             ]

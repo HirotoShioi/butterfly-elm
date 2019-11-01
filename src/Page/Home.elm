@@ -1,8 +1,7 @@
-module Page.Home exposing (title, view)
+module Page.Home exposing (view)
 
 import Html exposing (Html, a, div, p, text)
 import Html.Attributes exposing (href)
-import Page
 import Route
 
 
@@ -35,8 +34,3 @@ view =
         , p []
             [ text "（「情報技術で漢詩を読む」の監修者、伊藤利朗記）" ]
         ]
-
-
-title : String
-title =
-    Page.homeTitle

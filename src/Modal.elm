@@ -1,8 +1,8 @@
 module Modal exposing (Model, Msg(..), init, update, view)
 
-import Bulma.Components as Components
-import Bulma.Elements as Elements
-import Bulma.Modifiers.Typography as Typography
+import Bulma.Components exposing (modal, modalBackground, modalContent)
+import Bulma.Elements exposing (ImageShape(..), TitleSize(..), box, image, title)
+import Bulma.Modifiers.Typography exposing (Color(..), Weight(..), textColor, textWeight)
 import Butterfly.Type exposing (Butterfly, Color)
 import Html exposing (Html, div, h6, img, p, span, text)
 import Html.Attributes exposing (class, src, style)
@@ -35,10 +35,10 @@ update msg _ =
 
 view : Model -> Html Msg
 view model =
-    Components.modal (isJust model)
+    modal (isJust model)
         []
-        [ Components.modalBackground [ onClick ModalBackgroundClicked ] []
-        , Components.modalContent [ class "butterfly-modal" ]
+        [ modalBackground [ onClick ModalBackgroundClicked ] []
+        , modalContent [ class "butterfly-modal" ]
             [ butterflyView model
             ]
         ]
@@ -51,12 +51,12 @@ butterflyView mButterfly =
             div [] [ text "This should never happen" ]
 
         Just butterfly ->
-            Elements.box [ class "butterfly-modal-box" ]
+            box [ class "butterfly-modal-box" ]
                 [ butterflyImage butterfly.imgSrc
                 , colorBar butterfly.dominantColors
                 , div [ class "content butterfly-modal-content" ]
-                    [ Elements.title Elements.H5 [] [ text butterfly.jpName ]
-                    , h6 [ class "subtitle", Typography.textColor Typography.Grey ] [ text butterfly.engName ]
+                    [ title H5 [] [ text butterfly.jpName ]
+                    , h6 [ class "subtitle", textColor Grey ] [ text butterfly.engName ]
                     , fieldValueView "分類" butterfly.category
                     , fieldValueView "生息地" butterfly.region
                     ]
@@ -66,14 +66,14 @@ butterflyView mButterfly =
 fieldValueView : String -> String -> Html msg
 fieldValueView field value =
     p []
-        [ span [ Typography.textWeight Typography.Bold ] [ text <| String.concat [ field, ": " ] ]
+        [ span [ textWeight Bold ] [ text <| String.concat [ field, ": " ] ]
         , span [] [ text value ]
         ]
 
 
 butterflyImage : String -> Html msg
 butterflyImage img_src =
-    Elements.image Elements.SixteenByNine
+    image SixteenByNine
         []
         [ img [ src <| String.concat [ "http://biokite.com/worldbutterfly/", img_src ] ] []
         ]

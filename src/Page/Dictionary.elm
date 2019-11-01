@@ -1,4 +1,4 @@
-module Page.Dictionary exposing (Model, Msg(..), getKey, getSession, init, title, update, updateSession, view)
+module Page.Dictionary exposing (Model, Msg(..), getKey, getSession, init, update, updateSession, view)
 
 import Browser.Navigation as Nav
 import Bulma.Components as Components
@@ -8,7 +8,6 @@ import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
-import Page
 import Page.Dictionary.View as View
 import Route
 import Session exposing (Session)
@@ -41,11 +40,6 @@ type alias ResultModel =
     , isCategoryMenuOpen : Bool
     , isColorMenuOpen : Bool
     }
-
-
-title : String
-title =
-    Page.dictionaryTitle
 
 
 disableMenus : ResultModel -> ResultModel

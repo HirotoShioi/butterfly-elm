@@ -3,10 +3,10 @@ module Page.Dictionary.View exposing (colorTag, emptyView, loadingView, searchDr
 import Bulma.Components as B
 import Bulma.Elements as B
 import Bulma.Modifiers as B
-import Bulma.Modifiers.Typography as Typo
+import Bulma.Modifiers.Typography exposing (Color(..), Size(..), textCentered, textColor, textSize)
 import Butterfly.Type exposing (Butterfly)
 import Html exposing (Attribute, Html, div, i, img, span, text)
-import Html.Attributes as A exposing (attribute, class, disabled, src, style)
+import Html.Attributes as Attr exposing (attribute, class, disabled, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
 
@@ -100,7 +100,7 @@ loadingView : Html msg
 loadingView =
     div []
         [ text "Loading..."
-        , B.progress loadingProgressModifiers [ A.max "100", class "loading" ] [ text "50%" ]
+        , B.progress loadingProgressModifiers [ Attr.max "100", class "loading" ] [ text "50%" ]
         ]
 
 
@@ -114,10 +114,10 @@ showButterflies butterfly clickedMsg =
     div [ class "column is-one-third-tablet is-one-fifth-desktop" ]
         [ B.card [ class "butterfly-card", onClick (clickedMsg butterfly) ]
             [ B.cardImage [] [ butterflyImage butterfly.imgSrc ]
-            , B.cardContent [ Typo.textCentered, Typo.textSize Typo.Small ]
+            , B.cardContent [ textCentered, textSize Small ]
                 [ div []
                     [ text butterfly.jpName
-                    , div [ class "content", Typo.textColor Typo.Grey ] [ text butterfly.engName ]
+                    , div [ class "content", textColor Grey ] [ text butterfly.engName ]
                     ]
                 ]
             ]

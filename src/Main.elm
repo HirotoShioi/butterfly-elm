@@ -2,10 +2,10 @@ module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
-import Bulma.Columns as Columns exposing (ColumnsModifiers)
-import Bulma.Elements as Elements
-import Bulma.Layout as Layout exposing (HeroModifiers)
-import Bulma.Modifiers as Modifiers
+import Bulma.Columns exposing (ColumnsModifiers, Display(..), Gap(..), columns)
+import Bulma.Elements exposing (TitleSize(..), title)
+import Bulma.Layout exposing (HeroModifiers, SectionSpacing(..), hero, heroBody, section)
+import Bulma.Modifiers exposing (Color(..), Size(..))
 import Html exposing (Html, div, main_, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -268,42 +268,48 @@ view : Model -> Browser.Document Msg
 view model =
     case model of
         Error s ->
-            toViewNoOp s Page.Error Error.title Error.view
+            toViewNoOp s Page.Error Error.view
 
         NotFound s ->
-            toViewNoOp s Page.NotFound NotFound.title NotFound.view
+            toViewNoOp s Page.NotFound NotFound.view
 
         Home s ->
-            toViewNoOp s Page.Home Home.title Home.view
+            toViewNoOp s Page.Home Home.view
 
         Reference s ->
-            toViewNoOp s Page.Reference Ref.title Ref.view
+            toViewNoOp s Page.Reference Ref.view
 
         Category s ->
-            toViewNoOp s Page.Category Category.title Category.view
+            toViewNoOp s Page.Category Category.view
 
         Description s ->
-            toViewNoOp s Page.Description Desc.title Desc.view
+            toViewNoOp s Page.Description Desc.view
 
         Area s ->
-            toViewNoOp s Page.Area Area.title Area.view
+            toViewNoOp s Page.Area Area.view
 
         Dictionary submodel ->
-            toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMessage Dic.title (Dic.view submodel)
+            toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMessage (Dic.view submodel)
 
 
-toViewNoOp : Session -> Page -> String -> Html msg -> Browser.Document Msg
-toViewNoOp session page title content =
+toViewNoOp : Session -> Page -> Html msg -> Browser.Document Msg
+toViewNoOp session page content =
     let
+        title =
+            Page.toTitle page
+
         body =
             mainView session page (heroView title (\_ -> NoOp) content)
     in
     Browser.Document title body
 
 
-toView : Session -> Page -> (msg -> Msg) -> String -> Html msg -> Browser.Document Msg
-toView session page toMsg title content =
+toView : Session -> Page -> (msg -> Msg) -> Html msg -> Browser.Document Msg
+toView session page toMsg content =
     let
+        title =
+            Page.toTitle page
+
         body =
             mainView session page (sectionView toMsg content)
     in
@@ -315,7 +321,7 @@ mainView session page content =
     [ main_ []
         [ Html.map GotModalMessage <| Modal.view session.modalModel
         , Html.map GotNavBarMessage <| NavBar.view page session.navModel
-        , Columns.columns myColumnsModifiers
+        , columns myColumnsModifiers
             [ onClick MainClicked ]
             [ content ]
         ]
@@ -324,7 +330,7 @@ mainView session page content =
 
 sectionView : (msg -> Msg) -> Html msg -> Html Msg
 sectionView toMsg content =
-    Layout.section Layout.NotSpaced
+    section NotSpaced
         [ class "content section-view" ]
         [ Html.map toMsg content ]
 
@@ -332,14 +338,14 @@ sectionView toMsg content =
 heroView : String -> (msg -> Msg) -> Html msg -> Html Msg
 heroView t toMsg content =
     div [ class "column is-8 is-offset-2" ]
-        [ Layout.hero myHeroModifiers
+        [ hero myHeroModifiers
             []
-            [ Layout.heroBody []
-                [ Elements.title Elements.H2
+            [ heroBody []
+                [ title H2
                     []
                     [ text t ]
                 ]
-            , Layout.section Layout.NotSpaced
+            , section NotSpaced
                 [ class "content" ]
                 [ Html.map toMsg content
                 ]
@@ -350,16 +356,16 @@ heroView t toMsg content =
 myHeroModifiers : HeroModifiers
 myHeroModifiers =
     { bold = False
-    , size = Modifiers.Small
-    , color = Modifiers.Default
+    , size = Small
+    , color = Default
     }
 
 
 myColumnsModifiers : ColumnsModifiers
 myColumnsModifiers =
     { multiline = False
-    , gap = Columns.Gap0
-    , display = Columns.TabletAndBeyond
+    , gap = Gap0
+    , display = TabletAndBeyond
     , centered = True
     }
 
