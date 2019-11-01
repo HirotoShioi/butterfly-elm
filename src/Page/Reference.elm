@@ -1,7 +1,6 @@
-module Page.Reference exposing (..)
+module Page.Reference exposing (title, view)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html exposing (Html, div, li, text, ul)
 import Page
 import Page.Components as C
 

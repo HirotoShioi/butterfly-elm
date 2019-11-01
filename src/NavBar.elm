@@ -1,14 +1,9 @@
-module NavBar exposing (..)
+module NavBar exposing (Model, Msg(..), init, update, view)
 
-import Bulma.Columns exposing (..)
-import Bulma.Components exposing (..)
-import Bulma.Elements exposing (..)
-import Bulma.Layout exposing (..)
-import Bulma.Modifiers exposing (..)
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Bulma.Components exposing (navbar, navbarBrand, navbarEnd, navbarItem, navbarItemLink, navbarMenu, navbarModifiers, navbarStart)
+import Html exposing (Html, a, div, img, span, text)
+import Html.Attributes exposing (class, href, src)
 import Html.Events exposing (onClick)
-import Json.Decode as Decode exposing (Decoder)
 import Page exposing (Page)
 import Route exposing (Route)
 
@@ -19,36 +14,30 @@ type Msg
 
 
 type alias Model =
-    { isMenuOpen : Bool
-    }
+    Bool
 
 
 init : Model
 init =
-    Model False
+    False
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ToggleMenu ->
-            ( { model | isMenuOpen = not model.isMenuOpen }, Cmd.none )
+            ( not model, Cmd.none )
 
         DisableMenu ->
-            ( { model | isMenuOpen = False }, Cmd.none )
-
-
-toggleNav : Model -> Model
-toggleNav model =
-    { model | isMenuOpen = not model.isMenuOpen }
+            ( False, Cmd.none )
 
 
 view : Page -> Model -> Html Msg
-view page model =
+view page isOpen =
     navbar navbarModifiers
         []
         [ navbarBrand []
-            (myNavbarBurger model.isMenuOpen)
+            (myNavbarBurger isOpen)
             [ navbarItem False
                 []
                 [ a [ href "/" ]
@@ -56,7 +45,7 @@ view page model =
                     ]
                 ]
             ]
-        , navbarMenu model.isMenuOpen
+        , navbarMenu isOpen
             []
             [ navbarStart []
                 [ navLink page Route.Dictionary Page.dictionaryTitle

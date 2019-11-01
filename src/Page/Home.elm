@@ -1,7 +1,7 @@
-module Page.Home exposing (..)
+module Page.Home exposing (title, view)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html exposing (Html, a, div, p, text)
+import Html.Attributes exposing (href)
 import Page
 import Route
 

@@ -1,6 +1,6 @@
-module Butterfly.Api exposing (..)
+module Butterfly.Api exposing (Msg(..), getButterflies)
 
-import Butterfly.Type as B exposing (Butterfly, Color)
+import Butterfly.Type as B exposing (Butterfly)
 import Http
 
 

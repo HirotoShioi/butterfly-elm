@@ -1,9 +1,8 @@
-module Page.Components exposing (..)
+module Page.Components exposing (her, sectionHeader)
 
-import Bulma.Elements exposing (..)
-import Bulma.Modifiers.Typography exposing (..)
-import Html exposing (..)
-import Html.Attributes exposing (class, src)
+import Bulma.Elements exposing (TitleSize(..), title)
+import Html exposing (Html, hr, text)
+import Html.Attributes exposing (class)
 
 
 sectionHeader : String -> Html msg

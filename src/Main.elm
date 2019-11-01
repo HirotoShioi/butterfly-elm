@@ -1,15 +1,13 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
-import Bulma.Columns exposing (..)
-import Bulma.Components exposing (..)
-import Bulma.Elements exposing (..)
-import Bulma.Layout exposing (..)
-import Bulma.Modifiers exposing (..)
-import Butterfly.Api as Api
+import Bulma.Columns as Columns exposing (ColumnsModifiers)
+import Bulma.Elements as Elements
+import Bulma.Layout as Layout exposing (HeroModifiers)
+import Bulma.Modifiers as Modifiers
 import Html exposing (Html, div, main_, text)
-import Html.Attributes exposing (class, src)
+import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Modal
 import NavBar
@@ -317,7 +315,7 @@ mainView session page content =
     [ main_ []
         [ Html.map GotModalMessage <| Modal.view session.modalModel
         , Html.map GotNavBarMessage <| NavBar.view page session.navModel
-        , columns myColumnsModifiers
+        , Columns.columns myColumnsModifiers
             [ onClick MainClicked ]
             [ content ]
         ]
@@ -326,7 +324,7 @@ mainView session page content =
 
 sectionView : (msg -> Msg) -> Html msg -> Html Msg
 sectionView toMsg content =
-    section NotSpaced
+    Layout.section Layout.NotSpaced
         [ class "content section-view" ]
         [ Html.map toMsg content ]
 
@@ -334,14 +332,14 @@ sectionView toMsg content =
 heroView : String -> (msg -> Msg) -> Html msg -> Html Msg
 heroView t toMsg content =
     div [ class "column is-8 is-offset-2" ]
-        [ hero myHeroModifiers
+        [ Layout.hero myHeroModifiers
             []
-            [ heroBody []
-                [ title H2
+            [ Layout.heroBody []
+                [ Elements.title Elements.H2
                     []
                     [ text t ]
                 ]
-            , section NotSpaced
+            , Layout.section Layout.NotSpaced
                 [ class "content" ]
                 [ Html.map toMsg content
                 ]
@@ -352,16 +350,16 @@ heroView t toMsg content =
 myHeroModifiers : HeroModifiers
 myHeroModifiers =
     { bold = False
-    , size = Small
-    , color = Default
+    , size = Modifiers.Small
+    , color = Modifiers.Default
     }
 
 
 myColumnsModifiers : ColumnsModifiers
 myColumnsModifiers =
     { multiline = False
-    , gap = Gap0
-    , display = TabletAndBeyond
+    , gap = Columns.Gap0
+    , display = Columns.TabletAndBeyond
     , centered = True
     }
 

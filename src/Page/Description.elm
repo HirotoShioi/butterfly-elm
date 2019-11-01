@@ -1,8 +1,6 @@
-module Page.Description exposing (..)
+module Page.Description exposing (title, view)
 
-import Bulma.Elements exposing (..)
-import Bulma.Modifiers.Typography exposing (..)
-import Html exposing (..)
+import Html exposing (Html, div, img, p, text)
 import Html.Attributes exposing (class, src)
 import Page
 import Page.Components as C

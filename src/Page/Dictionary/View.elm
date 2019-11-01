@@ -1,15 +1,14 @@
-module Page.Dictionary.View exposing (..)
+module Page.Dictionary.View exposing (colorTag, emptyView, loadingView, searchDropdown, searchDropdownTrigger, searchTag, showButterflies)
 
 import Bulma.Components as B
 import Bulma.Elements as B
 import Bulma.Modifiers as B
 import Bulma.Modifiers.Typography as Typo
-import Butterfly.Type exposing (Butterfly, Query, filterButterflies)
-import Html exposing (..)
-import Html.Attributes as A exposing (..)
+import Butterfly.Type exposing (Butterfly)
+import Html exposing (Attribute, Html, div, i, img, span, text)
+import Html.Attributes as A exposing (attribute, class, disabled, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
-import Set exposing (Set)
 
 
 searchDropdown :

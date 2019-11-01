@@ -1,9 +1,7 @@
-module Page.Category exposing (..)
+module Page.Category exposing (title, view)
 
 import Bulma.Elements as B
-import Bulma.Modifiers.Typography exposing (..)
-import Html exposing (..)
-import Html.Attributes exposing (class, src)
+import Html exposing (Html, div, p, text)
 import Page
 import Page.Components as C
 

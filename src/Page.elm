@@ -1,4 +1,4 @@
-module Page exposing (..)
+module Page exposing (Page(..), areaTitle, categoryTitle, descriptionTitle, dictionaryTitle, errorTitle, homeTitle, notFoundTitle, referenceTitle)
 
 
 type Page

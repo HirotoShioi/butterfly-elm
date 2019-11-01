@@ -1,7 +1,6 @@
-module Page.Error exposing (..)
+module Page.Error exposing (title, view)
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html exposing (Html, div, text)
 import Page
 
 
