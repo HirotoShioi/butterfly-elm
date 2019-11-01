@@ -27,6 +27,10 @@ type Msg
     | RegionClicked String
     | ToggleCategoryMenu
     | CategoryClicked String
+    | ToggleColorMenu
+    | ColorClicked String
+    | DeleteTag
+    | ResetColor
 
 
 type Model
@@ -39,12 +43,13 @@ type alias ResultModel =
     , butterflies : List Butterfly
     , isRegionMenuOpen : Bool
     , isCategoryMenuOpen : Bool
+    , isColorMenuOpen : Bool
     }
 
 
 disableMenus : ResultModel -> ResultModel
 disableMenus resultModel =
-    ResultModel resultModel.session resultModel.butterflies False False
+    ResultModel resultModel.session resultModel.butterflies False False False
 
 
 init : Session -> ( Model, Cmd Msg )
@@ -54,7 +59,7 @@ init session =
 
 initResult : Session -> List Butterfly -> ( Model, Cmd Msg )
 initResult session butterflies =
-    ( Result <| ResultModel session butterflies False False, Cmd.none )
+    ( Result <| ResultModel session butterflies False False False, Cmd.none )
 
 
 getKey : Model -> Nav.Key
@@ -121,12 +126,22 @@ resultView model =
 
         regionDropdown =
             mkRegionDropdown model
+
+        colorDropdown =
+            mkColorDropdown model
     in
     div [ class "dictionary-view" ]
         [ div [ class "dictionary-search-content" ]
             [ div [ class "field is-grouped is-grouped-multiline" ]
                 [ div [ class "control" ] [ regionDropdown ]
                 , div [ class "control" ] [ categoryDropdown ]
+                , div [ class "control" ] [ colorDropdown ]
+                , case model.session.query.hexColor of
+                    Nothing ->
+                        div [] []
+
+                    Just color ->
+                        div [ class "control" ] [ colorTag color ResetColor ]
                 ]
             ]
         , if List.isEmpty filteredButterflies then
@@ -136,6 +151,20 @@ resultView model =
             Keyed.node "div" [ class "columns  is-multiline" ] <|
                 List.map (\butterfly -> ( butterfly.jpName, showButterflies butterfly )) filteredButterflies
         ]
+
+
+colorTag : String -> msg -> Html msg
+colorTag hexString deleteMsg =
+    tagWithDelete colorTagModifiers
+        [ class "color-tag" ]
+        deleteMsg
+        [ div [ style "background-color" hexString, class "color-box" ] []
+        ]
+
+
+colorTagModifiers : TagModifiers
+colorTagModifiers =
+    TagModifiers Mod.Large Mod.Default False
 
 
 emptyView : Html Msg
@@ -215,19 +244,43 @@ update msg model =
                         in
                         ( updateSession (Result updatedModel) newSession, Cmd.none )
 
+        ( ColorClicked hexString, Result m ) ->
+            let
+                newSession =
+                    Session.update (Session.UpdateColor hexString) m.session
+
+                updatedModel =
+                    disableMenus m
+            in
+            ( updateSession (Result updatedModel) newSession, Cmd.none )
+
         ( ToggleRegionMenu, Result m ) ->
             let
                 updatedModel =
-                    { m | isRegionMenuOpen = not m.isRegionMenuOpen, isCategoryMenuOpen = False }
+                    { m | isRegionMenuOpen = not m.isRegionMenuOpen, isCategoryMenuOpen = False, isColorMenuOpen = False }
             in
             ( Result updatedModel, Cmd.none )
 
         ( ToggleCategoryMenu, Result m ) ->
             let
                 updatedModel =
-                    { m | isCategoryMenuOpen = not m.isCategoryMenuOpen, isRegionMenuOpen = False }
+                    { m | isCategoryMenuOpen = not m.isCategoryMenuOpen, isRegionMenuOpen = False, isColorMenuOpen = False }
             in
             ( Result updatedModel, Cmd.none )
+
+        ( ToggleColorMenu, Result m ) ->
+            let
+                updatedModel =
+                    { m | isColorMenuOpen = not m.isColorMenuOpen, isRegionMenuOpen = False, isCategoryMenuOpen = False }
+            in
+            ( Result updatedModel, Cmd.none )
+
+        ( ResetColor, Result m ) ->
+            let
+                newSession =
+                    Session.update Session.ResetColor m.session
+            in
+            ( updateSession (Result m) newSession, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
@@ -304,10 +357,68 @@ mkCategoryDropdown butterflies model =
                 Just _ ->
                     "分類" :: categoryList
     in
-    searchDropdown activeCategory categoryListWithReset ToggleCategoryMenu model.isCategoryMenuOpen (List.isEmpty categoryList) CategoryClicked
+    searchDropdown
+        activeCategory
+        categoryListWithReset
+        ToggleCategoryMenu
+        model.isCategoryMenuOpen
+        (List.isEmpty categoryList)
+        CategoryClicked
 
 
-searchDropdown : String -> List String -> Msg -> Bool -> Bool -> (String -> Msg) -> Html Msg
+
+-- div [ class "field is-grouped is-grouped-multiline" ]
+--                 [ div [ class "control" ] [ regionDropdown ]
+--                 , div [ class "control" ] [ categoryDropdown ]
+--                 , div [ class "control" ] [ colorDropdown ]
+--                 ]
+
+
+mkColorDropdown : ResultModel -> Html Msg
+mkColorDropdown resultModel =
+    let
+        colorList =
+            [ "#e60012"
+            , "#f39800"
+            , "#fff100"
+            , "#8fc31f"
+            , "#009944"
+            , "#009e96"
+            , "#00a0e9"
+            , "#0068b7"
+            , "#1d2088"
+            , "#920783"
+            , "#e4007f"
+            , "#e5004f"
+            ]
+    in
+    dropdown resultModel.isColorMenuOpen
+        dropdownModifiers
+        []
+        [ searchDropdownTrigger ToggleColorMenu "色" False
+        , dropdownMenu []
+            [ class "color-palette-wrapper" ]
+            [ dropdownItem False
+                []
+                [ div [ class "color-palette field is-grouped is-grouped-multiline" ] <|
+                    List.map
+                        (\hexColor ->
+                            div [ class "control color-palette-item", style "background-color" hexColor, onClick (ColorClicked hexColor) ] []
+                        )
+                        colorList
+                ]
+            ]
+        ]
+
+
+searchDropdown :
+    String -- Active link
+    -> List String -- List of items
+    -> Msg -- Toggle Msg
+    -> Bool -- Bool flag for menu status
+    -> Bool -- Bool flag for trigger disabled attribute
+    -> (String -> Msg) -- Msg used to send clicked item
+    -> Html Msg
 searchDropdown activeLink list toggleMsg isMenuOpen isDisabled clickMsg =
     dropdown isMenuOpen
         dropdownModifiers
@@ -321,7 +432,7 @@ searchDropdownTrigger : Msg -> String -> Bool -> Html Msg
 searchDropdownTrigger toggleMsg buttonName isDisabled =
     div [ class "dropdown-trigger" ]
         [ Html.button
-            [ onFocus toggleMsg
+            [ onClick toggleMsg
             , attribute "aria-haspopup" "true"
             , attribute "aria-controls" "dropdown-menu"
             , disabled isDisabled

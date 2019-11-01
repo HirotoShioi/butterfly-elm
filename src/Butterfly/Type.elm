@@ -134,7 +134,7 @@ type alias Query =
 
 initQuery : Query
 initQuery =
-    Query (Just OldNorth) Nothing Nothing (Just "#00ccdd") 100
+    Query (Just OldNorth) Nothing Nothing Nothing 100
 
 
 toSearchTerms : Query -> List SearchTerm

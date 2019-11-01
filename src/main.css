@@ -81,3 +81,36 @@ body {
 .dictionary-search-content {
   margin-bottom: 1em;
 }
+
+.color-palette {
+  width: 150px;
+  height: 130px;
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-bottom: 0 !important;
+}
+
+.color-palette-item {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 0 !important;
+  margin-right: 0 !important;
+  margin: 0px 5px;
+  cursor: pointer;
+}
+
+.color-palette-wrapper {
+  width: 180px;
+}
+
+.color-box {
+  width: 32px;
+  height: 75%;
+  border-radius: 2px;
+}
+
+.color-tag {
+  padding-left: 0.5em !important;
+}
