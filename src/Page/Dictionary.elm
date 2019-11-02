@@ -3,7 +3,8 @@ module Page.Dictionary exposing (Model, Msg(..), getKey, getSession, init, updat
 import Browser.Navigation as Nav
 import Bulma.Components as Components
 import Butterfly.Api as Api exposing (Msg(..))
-import Butterfly.Type exposing (Butterfly, Query, Region(..), filterButterflies, fromRegion, toRegion)
+import Butterfly.Query as Query exposing (Query, filterButterflies)
+import Butterfly.Type exposing (Butterfly, Region(..), fromRegion, toRegion)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
@@ -122,7 +123,7 @@ update msg model =
         ( CategoryClicked category, Result m ) ->
             let
                 newSession =
-                    Session.update (Session.AddCategory category) m.session
+                    Session.update (Session.FromDictionary <| Query.UpdateCategory category) m.session
 
                 updatedModel =
                     disableMenus m
@@ -137,7 +138,7 @@ update msg model =
                 Ok region ->
                     let
                         newSession =
-                            Session.update (Session.UpdateRegion region) m.session
+                            Session.update (Session.FromDictionary <| Query.UpdateRegion region) m.session
 
                         updatedModel =
                             disableMenus m
@@ -147,7 +148,7 @@ update msg model =
         ( ColorClicked hexString, Result m ) ->
             let
                 newSession =
-                    Session.update (Session.UpdateColor hexString) m.session
+                    Session.update (Session.FromDictionary <| Query.UpdateColor hexString) m.session
 
                 updatedModel =
                     disableMenus m
@@ -178,21 +179,21 @@ update msg model =
         ( ResetColor, Result m ) ->
             let
                 newSession =
-                    Session.update Session.ResetColor m.session
+                    Session.update (Session.FromDictionary Query.ResetColor) m.session
             in
             ( updateSession (Result m) newSession, Cmd.none )
 
         ( ResetRegion, Result m ) ->
             let
                 newSession =
-                    Session.update Session.ResetRegion m.session
+                    Session.update (Session.FromDictionary Query.ResetRegion) m.session
             in
             ( updateSession (Result m) newSession, Cmd.none )
 
         ( ResetCategory, Result m ) ->
             let
                 newSession =
-                    Session.update Session.ResetCategory m.session
+                    Session.update (Session.FromDictionary Query.ResetCategory) m.session
             in
             ( updateSession (Result m) newSession, Cmd.none )
 

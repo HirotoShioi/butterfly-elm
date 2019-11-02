@@ -3,9 +3,10 @@ module Modal exposing (Msg(..), update, view)
 import Bulma.Components exposing (modal, modalBackground, modalContent)
 import Bulma.Elements exposing (ImageShape(..), TitleSize(..), box, image, title)
 import Bulma.Modifiers.Typography exposing (Color(..), Weight(..), textColor, textWeight)
+import Butterfly.Query as Query
 import Butterfly.Type exposing (Butterfly, Color, toRegion)
 import Html exposing (Html, a, div, h6, img, p, span, text)
-import Html.Attributes exposing (class, href, src, style)
+import Html.Attributes exposing (class, src, style)
 import Html.Events exposing (onClick)
 import Session exposing (Session)
 
@@ -28,7 +29,7 @@ update msg session =
             ( Session.update (Session.EnableModal butterfly) session, Cmd.none )
 
         ColorClicked hexColor ->
-            ( Session.update (Session.UpdateColorFromModal hexColor) session, Cmd.none )
+            ( Session.update (Session.FromModal <| Query.UpdateColor hexColor) session, Cmd.none )
 
         RegionClicked regionStr ->
             case toRegion regionStr of
@@ -36,10 +37,10 @@ update msg session =
                     ( session, Cmd.none )
 
                 Ok region ->
-                    ( Session.update (Session.UpdateRegionFromModal region) session, Cmd.none )
+                    ( Session.update (Session.FromModal <| Query.UpdateRegion region) session, Cmd.none )
 
         CategoryClicked category ->
-            ( Session.update (Session.UpdateCategoryFromModal category) session, Cmd.none )
+            ( Session.update (Session.FromModal <| Query.UpdateCategory category) session, Cmd.none )
 
 
 view : Session -> Html Msg
