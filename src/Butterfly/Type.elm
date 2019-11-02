@@ -134,7 +134,7 @@ type alias Query =
 
 initQuery : Query
 initQuery =
-    Query (Just OldNorth) Nothing Nothing Nothing 70
+    Query Nothing Nothing Nothing Nothing 70
 
 
 toSearchTerms : Query -> List SearchTerm

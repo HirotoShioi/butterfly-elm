@@ -3,7 +3,7 @@ module Modal exposing (Msg(..), update, view)
 import Bulma.Components exposing (modal, modalBackground, modalContent)
 import Bulma.Elements exposing (ImageShape(..), TitleSize(..), box, image, title)
 import Bulma.Modifiers.Typography exposing (Color(..), Weight(..), textColor, textWeight)
-import Butterfly.Type exposing (Butterfly, Color)
+import Butterfly.Type exposing (Butterfly, Color, toRegion)
 import Html exposing (Html, a, div, h6, img, p, span, text)
 import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
@@ -14,6 +14,8 @@ type Msg
     = ModalBackgroundClicked
     | ModalEnabled Butterfly
     | ColorClicked String
+    | RegionClicked String
+    | CategoryClicked String
 
 
 update : Msg -> Session -> ( Session, Cmd Msg )
@@ -27,6 +29,17 @@ update msg session =
 
         ColorClicked hexColor ->
             ( Session.update (Session.UpdateColorFromModal hexColor) session, Cmd.none )
+
+        RegionClicked regionStr ->
+            case toRegion regionStr of
+                Err _ ->
+                    ( session, Cmd.none )
+
+                Ok region ->
+                    ( Session.update (Session.UpdateRegionFromModal region) session, Cmd.none )
+
+        CategoryClicked category ->
+            ( Session.update (Session.UpdateCategoryFromModal category) session, Cmd.none )
 
 
 view : Session -> Html Msg
@@ -53,17 +66,17 @@ butterflyView mButterfly =
                 , div [ class "content butterfly-modal-content" ]
                     [ title H5 [] [ text butterfly.jpName ]
                     , h6 [ class "subtitle", textColor Grey ] [ text butterfly.engName ]
-                    , fieldValueView "分類" butterfly.category
-                    , fieldValueView "生息地" butterfly.region
+                    , fieldValueView "分類" butterfly.category CategoryClicked
+                    , fieldValueView "生息地" butterfly.region RegionClicked
                     ]
                 ]
 
 
-fieldValueView : String -> String -> Html msg
-fieldValueView field value =
+fieldValueView : String -> String -> (String -> msg) -> Html msg
+fieldValueView field value clickMsg =
     p []
         [ span [ textWeight Bold ] [ text <| String.concat [ field, ": " ] ]
-        , span [] [ text value ]
+        , a [ onClick <| clickMsg value ] [ text value ]
         ]
 
 
@@ -109,7 +122,6 @@ colorBlockView color =
         , style "width" percentageText
         , style "background-color" color.hexColor
         , onClick <| ColorClicked color.hexColor
-        , href "#"
         ]
         []
 

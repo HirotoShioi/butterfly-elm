@@ -26,6 +26,8 @@ type Msg
     | UpdateColor String
     | ResetColor
     | UpdateColorFromModal String
+    | UpdateCategoryFromModal String
+    | UpdateRegionFromModal Region
 
 
 
@@ -107,6 +109,26 @@ update msg session =
 
                 newQuery =
                     { query | hexColor = Just hexString }
+            in
+            { session | query = newQuery, modalContent = Nothing }
+
+        UpdateCategoryFromModal category ->
+            let
+                query =
+                    session.query
+
+                newQuery =
+                    { query | category = Just category }
+            in
+            { session | query = newQuery, modalContent = Nothing }
+
+        UpdateRegionFromModal region ->
+            let
+                query =
+                    session.query
+
+                newQuery =
+                    { query | region = Just region }
             in
             { session | query = newQuery, modalContent = Nothing }
 
