@@ -1,45 +1,41 @@
-module Modal exposing (Model, Msg(..), init, update, view)
+module Modal exposing (Msg(..), update, view)
 
 import Bulma.Components exposing (modal, modalBackground, modalContent)
 import Bulma.Elements exposing (ImageShape(..), TitleSize(..), box, image, title)
 import Bulma.Modifiers.Typography exposing (Color(..), Weight(..), textColor, textWeight)
 import Butterfly.Type exposing (Butterfly, Color)
-import Html exposing (Html, div, h6, img, p, span, text)
-import Html.Attributes exposing (class, src, style)
+import Html exposing (Html, a, div, h6, img, p, span, text)
+import Html.Attributes exposing (class, href, src, style)
 import Html.Events exposing (onClick)
-
-
-type alias Model =
-    Maybe Butterfly
+import Session exposing (Session)
 
 
 type Msg
     = ModalBackgroundClicked
     | ModalEnabled Butterfly
+    | ColorClicked String
 
 
-init : Model
-init =
-    Nothing
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg _ =
+update : Msg -> Session -> ( Session, Cmd Msg )
+update msg session =
     case msg of
         ModalBackgroundClicked ->
-            ( Nothing, Cmd.none )
+            ( Session.update Session.DisableModal session, Cmd.none )
 
         ModalEnabled butterfly ->
-            ( Just butterfly, Cmd.none )
+            ( Session.update (Session.EnableModal butterfly) session, Cmd.none )
+
+        ColorClicked hexColor ->
+            ( Session.update (Session.UpdateColorFromModal hexColor) session, Cmd.none )
 
 
-view : Model -> Html Msg
+view : Session -> Html Msg
 view model =
-    modal (isJust model)
+    modal (isJust model.modalContent)
         []
         [ modalBackground [ onClick ModalBackgroundClicked ] []
         , modalContent [ class "butterfly-modal" ]
-            [ butterflyView model
+            [ butterflyView model.modalContent
             ]
         ]
 
@@ -91,20 +87,16 @@ isJust mValue =
 
 colorBar : List Color -> Html Msg
 colorBar colors =
-    let
-        colorBlocks =
-            List.sortBy (\color -> color.pixelFraction) colors
-                |> List.reverse
-                |> List.map coloBlockView
-    in
     div [ class "color-wrapper" ]
-        [ div [ class "color-container" ]
-            colorBlocks
+        [ div [ class "color-container" ] <|
+            List.map colorBlockView <|
+                List.reverse <|
+                    List.sortBy (\color -> color.pixelFraction) colors
         ]
 
 
-coloBlockView : Color -> Html Msg
-coloBlockView color =
+colorBlockView : Color -> Html Msg
+colorBlockView color =
     let
         percentage =
             color.pixelFraction * 100
@@ -112,7 +104,13 @@ coloBlockView color =
         percentageText =
             String.concat [ String.fromFloat percentage, "%" ]
     in
-    div [ class "color", style "width" percentageText, style "background-color" color.hexColor ]
+    a
+        [ class "color"
+        , style "width" percentageText
+        , style "background-color" color.hexColor
+        , onClick <| ColorClicked color.hexColor
+        , href "#"
+        ]
         []
 
 

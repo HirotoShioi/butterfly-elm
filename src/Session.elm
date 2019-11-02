@@ -2,21 +2,20 @@ module Session exposing (Msg(..), Session, getKey, init, update)
 
 import Browser.Navigation as Nav
 import Butterfly.Type exposing (Butterfly, Query, Region(..), initQuery)
-import Modal
 import NavBar
 
 
 type alias Session =
     { key : Nav.Key
     , navModel : NavBar.Model
-    , modalModel : Modal.Model
+    , modalContent : Maybe Butterfly
     , query : Query
     }
 
 
 type Msg
     = UpdateNavbar NavBar.Model
-    | UpdateModal Modal.Model
+    | UpdateModal (Maybe Butterfly)
     | DisableModal
     | DisableMenu
     | EnableModal Butterfly
@@ -26,6 +25,7 @@ type Msg
     | ResetRegion
     | UpdateColor String
     | ResetColor
+    | UpdateColorFromModal String
 
 
 
@@ -38,17 +38,17 @@ update msg session =
         UpdateNavbar navbarModel ->
             { session | navModel = navbarModel }
 
-        UpdateModal modalModel ->
-            { session | modalModel = modalModel }
+        UpdateModal modalContent ->
+            { session | modalContent = modalContent }
 
         DisableMenu ->
             { session | navModel = NavBar.init }
 
         DisableModal ->
-            { session | modalModel = Nothing }
+            { session | modalContent = Nothing }
 
         EnableModal butterfly ->
-            { session | modalModel = Just butterfly }
+            { session | modalContent = Just butterfly }
 
         AddCategory category ->
             let
@@ -100,6 +100,16 @@ update msg session =
             in
             { session | query = newQuery }
 
+        UpdateColorFromModal hexString ->
+            let
+                query =
+                    session.query
+
+                newQuery =
+                    { query | hexColor = Just hexString }
+            in
+            { session | query = newQuery, modalContent = Nothing }
+
         ResetColor ->
             let
                 query =
@@ -111,9 +121,9 @@ update msg session =
             { session | query = newQuery }
 
 
-init : Nav.Key -> NavBar.Model -> Modal.Model -> Session
-init key model modalModel =
-    Session key model modalModel initQuery
+init : Nav.Key -> NavBar.Model -> Maybe Butterfly -> Session
+init key model modalContent =
+    Session key model modalContent initQuery
 
 
 getKey : Session -> Nav.Key
