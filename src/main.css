@@ -84,7 +84,7 @@ body {
 
 .color-palette {
   width: 150px;
-  height: 130px;
+  height: 120px;
   align-items: center;
   display: flex;
   flex-wrap: wrap;
@@ -99,6 +99,7 @@ body {
   margin-right: 0 !important;
   margin: 0px 5px;
   cursor: pointer;
+  border-radius: 2px;
 }
 
 .color-palette-wrapper {

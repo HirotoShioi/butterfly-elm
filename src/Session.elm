@@ -1,31 +1,27 @@
 module Session exposing (Msg(..), Session, getKey, init, update)
 
 import Browser.Navigation as Nav
-import Butterfly.Type exposing (Butterfly, Query, Region(..), initQuery)
-import Modal
+import Butterfly.Query as Query exposing (Query)
+import Butterfly.Type exposing (Butterfly, Region(..))
 import NavBar
 
 
 type alias Session =
     { key : Nav.Key
     , navModel : NavBar.Model
-    , modalModel : Modal.Model
+    , modalContent : Maybe Butterfly
     , query : Query
     }
 
 
 type Msg
     = UpdateNavbar NavBar.Model
-    | UpdateModal Modal.Model
+    | UpdateModal (Maybe Butterfly)
     | DisableModal
     | DisableMenu
     | EnableModal Butterfly
-    | AddCategory String
-    | ResetCategory
-    | UpdateRegion Region
-    | ResetRegion
-    | UpdateColor String
-    | ResetColor
+    | FromDictionary Query.Msg
+    | FromModal Query.Msg
 
 
 
@@ -38,82 +34,36 @@ update msg session =
         UpdateNavbar navbarModel ->
             { session | navModel = navbarModel }
 
-        UpdateModal modalModel ->
-            { session | modalModel = modalModel }
+        UpdateModal modalContent ->
+            { session | modalContent = modalContent }
 
         DisableMenu ->
             { session | navModel = NavBar.init }
 
         DisableModal ->
-            { session | modalModel = Nothing }
+            { session | modalContent = Nothing }
 
         EnableModal butterfly ->
-            { session | modalModel = Just butterfly }
+            { session | modalContent = Just butterfly }
 
-        AddCategory category ->
+        FromDictionary queryMsg ->
             let
-                query =
-                    session.query
-
-                newQuery =
-                    { query | category = Just category }
+                updatedQuery =
+                    Query.update session.query queryMsg
             in
-            { session | query = newQuery }
+            { session | query = updatedQuery }
 
-        ResetCategory ->
+        FromModal queryMsg ->
             let
-                query =
-                    session.query
-
-                newQuery =
-                    { query | category = Nothing }
+                updatedQuery =
+                    Query.update Query.init queryMsg
             in
-            { session | query = newQuery }
-
-        UpdateRegion region ->
-            let
-                query =
-                    session.query
-
-                newQuery =
-                    { query | region = Just region }
-            in
-            { session | query = newQuery }
-
-        ResetRegion ->
-            let
-                query =
-                    session.query
-
-                newQuery =
-                    { query | region = Nothing }
-            in
-            { session | query = newQuery }
-
-        UpdateColor hexString ->
-            let
-                query =
-                    session.query
-
-                newQuery =
-                    { query | hexColor = Just hexString }
-            in
-            { session | query = newQuery }
-
-        ResetColor ->
-            let
-                query =
-                    session.query
-
-                newQuery =
-                    { query | hexColor = Nothing }
-            in
-            { session | query = newQuery }
+            { session | query = updatedQuery, modalContent = Nothing }
 
 
-init : Nav.Key -> NavBar.Model -> Modal.Model -> Session
-init key model modalModel =
-    Session key model modalModel initQuery
+init : Nav.Key -> NavBar.Model -> Maybe Butterfly -> Session
+init key model modalContent =
+    Session key model modalContent Query.init
 
 
 getKey : Session -> Nav.Key

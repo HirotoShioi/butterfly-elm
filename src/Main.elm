@@ -128,7 +128,7 @@ init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
         initSession =
-            S.init key NavBar.init Modal.init
+            S.init key NavBar.init Nothing
     in
     changeRouteTo (Route.parseUrl url) (Home initSession)
 
@@ -229,16 +229,10 @@ update msg model =
                 session =
                     getSession someModel
 
-                ( subMsg, subCmd ) =
-                    Modal.update modalMsg session.modalModel
+                ( updatedSession, cmd ) =
+                    Modal.update modalMsg session
             in
-            updateWith
-                (\modalModel ->
-                    S.update (S.UpdateModal modalModel) session
-                        |> updateSession someModel
-                )
-                GotModalMessage
-                ( subMsg, subCmd )
+            ( updateSession someModel updatedSession, Cmd.map GotModalMessage cmd )
 
         ( GotNavBarMessage navMsg, someModel ) ->
             let
@@ -319,7 +313,7 @@ toView session page toMsg content =
 mainView : Session -> Page -> Html Msg -> List (Html Msg)
 mainView session page content =
     [ main_ []
-        [ Html.map GotModalMessage <| Modal.view session.modalModel
+        [ Html.map GotModalMessage <| Modal.view session
         , Html.map GotNavBarMessage <| NavBar.view page session.navModel
         , columns myColumnsModifiers
             [ onClick MainClicked ]
