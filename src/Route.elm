@@ -1,5 +1,6 @@
-module Route exposing (Route(..), href, parseUrl, routeToString)
+module Route exposing (Route(..), href, parseUrl, replaceUrl, routeToString)
 
+import Browser.Navigation as Nav
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Url exposing (Url)
@@ -19,6 +20,11 @@ type Route
 parseUrl : Url -> Maybe Route
 parseUrl url =
     Url.Parser.parse parser url
+
+
+replaceUrl : Nav.Key -> Route -> Cmd msg
+replaceUrl key route =
+    Nav.replaceUrl key (routeToString route)
 
 
 parser : Parser (Route -> a) a

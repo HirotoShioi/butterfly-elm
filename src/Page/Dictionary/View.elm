@@ -1,4 +1,4 @@
-module Page.Dictionary.View exposing (colorTag, emptyView, loadingView, searchDropdown, searchDropdownTrigger, searchTag, showButterflies)
+module Page.Dictionary.View exposing (colorTag, emptyView, searchDropdown, searchDropdownTrigger, searchTag, showButterflies)
 
 import Bulma.Components as B
 import Bulma.Elements as B
@@ -6,7 +6,7 @@ import Bulma.Modifiers as B
 import Bulma.Modifiers.Typography exposing (Color(..), Size(..), textCentered, textColor, textSize)
 import Butterfly.Type exposing (Butterfly)
 import Html exposing (Attribute, Html, div, i, img, span, text)
-import Html.Attributes as Attr exposing (attribute, class, disabled, src, style)
+import Html.Attributes exposing (attribute, class, disabled, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
 
@@ -94,19 +94,6 @@ searchTag deleteMsg name =
 searchTagModifiers : B.TagModifiers
 searchTagModifiers =
     B.TagModifiers B.Medium B.Default False
-
-
-loadingView : Html msg
-loadingView =
-    div []
-        [ text "Loading..."
-        , B.progress loadingProgressModifiers [ Attr.max "100", class "loading" ] [ text "50%" ]
-        ]
-
-
-loadingProgressModifiers : B.ProgressModifiers
-loadingProgressModifiers =
-    B.ProgressModifiers B.Medium B.Info
 
 
 showButterflies : Butterfly -> (Butterfly -> msg) -> Html msg

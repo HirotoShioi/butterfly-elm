@@ -1,4 +1,4 @@
-module Butterfly.Type exposing (Butterfly, Color, Region(..), butterfliesDecoder, fromRegion, toRegion)
+module Butterfly.Type exposing (Butterfly, Color, Region(..), butterfliesDecoder, fromRegion, regionList, toRegion)
 
 import Json.Decode as Decode exposing (Decoder, float, list, string)
 import Json.Decode.Pipeline exposing (required)
@@ -77,6 +77,16 @@ type Region
     | NewTropical
     | TropicalAfrica
     | IndiaAustralia
+
+
+regionList : List Region
+regionList =
+    [ OldNorth
+    , NewNorth
+    , NewTropical
+    , TropicalAfrica
+    , IndiaAustralia
+    ]
 
 
 fromRegion : Region -> String
