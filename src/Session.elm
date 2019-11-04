@@ -18,14 +18,13 @@ type alias Session =
 
 
 type Msg
-    = UpdateNavbar NavBar.Model
-    | UpdateModal (Maybe Butterfly)
-    | DisableModal
+    = DisableModal
     | DisableMenu
     | EnableModal Butterfly
     | FromDictionary Query.Msg
     | FromModal Query.Msg
     | GotButterflyResponse Api.Msg
+    | GotNavMessage NavBar.Msg
 
 
 
@@ -35,12 +34,6 @@ type Msg
 update : Msg -> Session -> ( Session, Cmd Msg )
 update msg session =
     case msg of
-        UpdateNavbar navbarModel ->
-            ( { session | navModel = navbarModel }, Cmd.none )
-
-        UpdateModal modalContent ->
-            ( { session | modalContent = modalContent }, Cmd.none )
-
         DisableMenu ->
             ( { session | navModel = NavBar.init }, Cmd.none )
 
@@ -78,6 +71,15 @@ update msg session =
                             Route.routeToString Route.Error
                     in
                     ( session, Nav.pushUrl key route )
+
+        GotNavMessage navMsg ->
+            let
+                ( updatedNavModel, navCmd ) =
+                    NavBar.update navMsg session.navModel
+            in
+            ( { session | navModel = updatedNavModel }
+            , Cmd.map GotNavMessage navCmd
+            )
 
 
 init : Nav.Key -> NavBar.Model -> Maybe Butterfly -> ( Session, Cmd Msg )

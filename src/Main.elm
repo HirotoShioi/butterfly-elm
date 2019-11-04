@@ -238,52 +238,16 @@ update msg model =
                 |> updateWith Dictionary GotDictionaryMessage
 
         ( MainClicked, someModel ) ->
-            let
-                session =
-                    getSession someModel
-
-                ( navModel, navCmd ) =
-                    NavBar.update NavBar.DisableMenu session.navModel
-
-                ( updatedSession, sessionCmd ) =
-                    S.update (S.UpdateNavbar navModel) session
-            in
-            ( updateSession someModel updatedSession
-            , Cmd.batch
-                [ Cmd.map GotNavBarMessage navCmd
-                , Cmd.map GotSessionMsg sessionCmd
-                ]
-            )
+            S.update (S.GotNavMessage NavBar.DisableMenu) (getSession someModel)
+                |> updateWith (updateSession someModel) GotSessionMsg
 
         ( GotModalMessage modalMsg, someModel ) ->
-            let
-                session =
-                    getSession someModel
-
-                ( updatedSession, cmd ) =
-                    Modal.update modalMsg session
-            in
-            ( updateSession someModel updatedSession
-            , Cmd.map GotModalMessage cmd
-            )
+            Modal.update modalMsg (getSession someModel)
+                |> updateWith (updateSession someModel) GotModalMessage
 
         ( GotNavBarMessage navMsg, someModel ) ->
-            let
-                session =
-                    getSession someModel
-
-                ( navbarModel, navCmd ) =
-                    NavBar.update navMsg session.navModel
-
-                ( updatedSession, sessionCmd ) =
-                    S.update (S.UpdateNavbar navbarModel) session
-            in
-            ( updateSession someModel updatedSession
-            , Cmd.batch
-                [ Cmd.map GotNavBarMessage navCmd
-                , Cmd.map GotSessionMsg sessionCmd
-                ]
-            )
+            S.update (S.GotNavMessage navMsg) (getSession someModel)
+                |> updateWith (updateSession someModel) GotSessionMsg
 
         ( GotSessionMsg sessionMsg, Loading s url ) ->
             case sessionMsg of
@@ -303,9 +267,9 @@ update msg model =
                         Err _ ->
                             ( Error s, Cmd.none )
 
+                -- If GotSessionMsg was triggered while the model is Loading, ignore it
                 _ ->
-                    S.update sessionMsg s
-                        |> updateWith (updateSession (Error s)) GotSessionMsg
+                    ( model, Cmd.none )
 
         ( GotSessionMsg sessionMsg, someModel ) ->
             S.update sessionMsg (getSession someModel)
