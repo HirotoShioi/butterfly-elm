@@ -16,6 +16,7 @@ type Page
       -- 570種の図鑑と解説
     | NotFound
     | Error
+    | Loading
 
 
 toTitle : Page -> String
@@ -44,3 +45,6 @@ toTitle page =
 
         NotFound ->
             "404 Not Found"
+
+        Loading ->
+            "読み込み中"

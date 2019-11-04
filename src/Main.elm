@@ -6,6 +6,7 @@ import Bulma.Columns exposing (ColumnsModifiers, Display(..), Gap(..), columns)
 import Bulma.Elements exposing (TitleSize(..), title)
 import Bulma.Layout exposing (HeroModifiers, SectionSpacing(..), hero, heroBody, section)
 import Bulma.Modifiers exposing (Color(..), Size(..))
+import Butterfly.Api as Api
 import Html exposing (Html, div, main_, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -18,6 +19,7 @@ import Page.Description as Desc
 import Page.Dictionary as Dic
 import Page.Error as Error
 import Page.Home as Home
+import Page.Loading as Loading
 import Page.NotFound as NotFound
 import Page.Reference as Ref
 import Route exposing (Route)
@@ -38,6 +40,7 @@ type Model
     | Description Session
     | Dictionary Dic.Model
     | Error Session
+    | Loading Session Url.Url -- Page that will load after session initiation has been completed
 
 
 getKey : Model -> Nav.Key
@@ -67,6 +70,9 @@ getKey model =
         Dictionary m ->
             Dic.getKey m
 
+        Loading s _ ->
+            S.getKey s
+
 
 getSession : Model -> Session
 getSession model =
@@ -90,6 +96,9 @@ getSession model =
             s
 
         Description s ->
+            s
+
+        Loading s _ ->
             s
 
         Dictionary m ->
@@ -120,6 +129,9 @@ updateSession model s =
         Description _ ->
             Description s
 
+        Loading _ url ->
+            Loading s url
+
         Dictionary m ->
             Dictionary (Dic.updateSession m s)
 
@@ -127,42 +139,55 @@ updateSession model s =
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
-        initSession =
+        ( initSession, sessionCmd ) =
             S.init key NavBar.init Nothing
+
+        liftedSessionCmd =
+            Cmd.map GotSessionMsg sessionCmd
+
+        ( model, cmd ) =
+            changeRouteTo (Route.parseUrl url) (Loading initSession url)
+
+        -- Go Loading page
     in
-    changeRouteTo (Route.parseUrl url) (Home initSession)
+    ( model, Cmd.batch [ cmd, liftedSessionCmd ] )
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
     let
-        session =
+        ( session, _ ) =
             S.update S.DisableMenu <| getSession model
     in
-    case maybeRoute of
-        Nothing ->
-            ( NotFound session, Cmd.none )
+    case model of
+        Loading s url ->
+            ( Loading s url, Cmd.none )
 
-        Just Route.Home ->
-            ( Home session, Cmd.none )
+        _ ->
+            case maybeRoute of
+                Nothing ->
+                    ( NotFound session, Cmd.none )
 
-        Just Route.Reference ->
-            ( Reference session, Cmd.none )
+                Just Route.Home ->
+                    ( Home session, Cmd.none )
 
-        Just Route.Description ->
-            ( Description session, Cmd.none )
+                Just Route.Reference ->
+                    ( Reference session, Cmd.none )
 
-        Just Route.Category ->
-            ( Category session, Cmd.none )
+                Just Route.Description ->
+                    ( Description session, Cmd.none )
 
-        Just Route.Area ->
-            ( Area session, Cmd.none )
+                Just Route.Category ->
+                    ( Category session, Cmd.none )
 
-        Just Route.Dictionary ->
-            updateWith Dictionary GotDictionaryMessage (Dic.init session)
+                Just Route.Area ->
+                    ( Area session, Cmd.none )
 
-        Just Route.Error ->
-            ( Error session, Cmd.none )
+                Just Route.Dictionary ->
+                    updateWith Dictionary GotDictionaryMessage (Dic.init session)
+
+                Just Route.Error ->
+                    ( Error session, Cmd.none )
 
 
 
@@ -184,6 +209,7 @@ type Msg
     | NoOp
     | MainClicked
     | GotModalMessage Modal.Msg
+    | GotSessionMsg S.Msg
 
 
 
@@ -211,44 +237,43 @@ update msg model =
             Dic.update submsg submodel
                 |> updateWith Dictionary GotDictionaryMessage
 
-        ( MainClicked, somemodel ) ->
-            let
-                session =
-                    getSession somemodel
-            in
-            NavBar.update NavBar.DisableMenu session.navModel
-                |> updateWith
-                    (\navmodel ->
-                        S.update (S.UpdateNavbar navmodel) session
-                            |> updateSession model
-                    )
-                    GotNavBarMessage
+        ( MainClicked, someModel ) ->
+            S.update (S.GotNavMessage NavBar.DisableMenu) (getSession someModel)
+                |> updateWith (updateSession someModel) GotSessionMsg
 
         ( GotModalMessage modalMsg, someModel ) ->
-            let
-                session =
-                    getSession someModel
-
-                ( updatedSession, cmd ) =
-                    Modal.update modalMsg session
-            in
-            ( updateSession someModel updatedSession, Cmd.map GotModalMessage cmd )
+            Modal.update modalMsg (getSession someModel)
+                |> updateWith (updateSession someModel) GotModalMessage
 
         ( GotNavBarMessage navMsg, someModel ) ->
-            let
-                session =
-                    getSession someModel
+            S.update (S.GotNavMessage navMsg) (getSession someModel)
+                |> updateWith (updateSession someModel) GotSessionMsg
 
-                ( subMsg, subCmd ) =
-                    NavBar.update navMsg session.navModel
-            in
-            updateWith
-                (\navbarModel ->
-                    S.update (S.UpdateNavbar navbarModel) session
-                        |> updateSession someModel
-                )
-                GotNavBarMessage
-                ( subMsg, subCmd )
+        ( GotSessionMsg sessionMsg, Loading s url ) ->
+            case sessionMsg of
+                -- Intercept the Api response in order to redirect pages
+                S.GotButterflyResponse (Api.GotButterflies res) ->
+                    case res of
+                        Ok _ ->
+                            let
+                                ( session, cmd ) =
+                                    S.update sessionMsg s
+
+                                ( someModel, routeCmd ) =
+                                    changeRouteTo (Route.parseUrl url) (Home session)
+                            in
+                            ( someModel, Cmd.batch [ routeCmd, Cmd.map GotSessionMsg cmd ] )
+
+                        Err _ ->
+                            ( Error s, Cmd.none )
+
+                -- If GotSessionMsg was triggered while the model is Loading, ignore it
+                _ ->
+                    ( model, Cmd.none )
+
+        ( GotSessionMsg sessionMsg, someModel ) ->
+            S.update sessionMsg (getSession someModel)
+                |> updateWith (updateSession someModel) GotSessionMsg
 
         ( _, _ ) ->
             ( model, Cmd.none )
@@ -281,6 +306,10 @@ view model =
 
         Area s ->
             toViewNoOp s Page.Area Area.view
+
+        Loading s _ ->
+            -- Loading
+            Browser.Document (Page.toTitle Page.Loading) (mainView s Page.Loading Loading.view)
 
         Dictionary submodel ->
             toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMessage (Dic.view submodel)

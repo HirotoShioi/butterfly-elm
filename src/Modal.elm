@@ -17,19 +17,20 @@ type Msg
     | ColorClicked String
     | RegionClicked String
     | CategoryClicked String
+    | GotSessionMsg Session.Msg
 
 
 update : Msg -> Session -> ( Session, Cmd Msg )
 update msg session =
     case msg of
         ModalBackgroundClicked ->
-            ( Session.update Session.DisableModal session, Cmd.none )
+            mapSessionCmd GotSessionMsg <| Session.update Session.DisableModal session
 
         ModalEnabled butterfly ->
-            ( Session.update (Session.EnableModal butterfly) session, Cmd.none )
+            mapSessionCmd GotSessionMsg <| Session.update (Session.EnableModal butterfly) session
 
         ColorClicked hexColor ->
-            ( Session.update (Session.FromModal <| Query.UpdateColor hexColor) session, Cmd.none )
+            mapSessionCmd GotSessionMsg <| Session.update (Session.FromModal <| Query.UpdateColor hexColor) session
 
         RegionClicked regionStr ->
             case toRegion regionStr of
@@ -37,10 +38,18 @@ update msg session =
                     ( session, Cmd.none )
 
                 Ok region ->
-                    ( Session.update (Session.FromModal <| Query.UpdateRegion region) session, Cmd.none )
+                    mapSessionCmd GotSessionMsg <| Session.update (Session.FromModal <| Query.UpdateRegion region) session
 
         CategoryClicked category ->
-            ( Session.update (Session.FromModal <| Query.UpdateCategory category) session, Cmd.none )
+            mapSessionCmd GotSessionMsg <| Session.update (Session.FromModal <| Query.UpdateCategory category) session
+
+        GotSessionMsg _ ->
+            ( session, Cmd.none )
+
+
+mapSessionCmd : (Session.Msg -> Msg) -> ( Session, Cmd Session.Msg ) -> ( Session, Cmd Msg )
+mapSessionCmd liftMsg pairs =
+    Tuple.mapSecond (Cmd.map liftMsg) pairs
 
 
 view : Session -> Html Msg

@@ -2,22 +2,19 @@ module Page.Dictionary exposing (Model, Msg(..), getKey, getSession, init, updat
 
 import Browser.Navigation as Nav
 import Bulma.Components as Components
-import Butterfly.Api as Api exposing (Msg(..))
 import Butterfly.Query as Query exposing (Query, filterButterflies)
-import Butterfly.Type exposing (Butterfly, Region(..), fromRegion, toRegion)
+import Butterfly.Type exposing (Butterfly, Region(..), fromRegion, regionList, toRegion)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
 import Page.Dictionary.View as View
-import Route
 import Session exposing (Session)
 import Set exposing (Set)
 
 
 type Msg
-    = GotButterflyResponse Api.Msg
-    | ButterflyClicked Butterfly
+    = ButterflyClicked Butterfly
     | ToggleRegionMenu
     | RegionClicked String
     | ToggleCategoryMenu
@@ -27,110 +24,73 @@ type Msg
     | ResetColor
     | ResetRegion
     | ResetCategory
+    | GotSessionMsg Session.Msg
 
 
-type Model
-    = Loading Session
-    | Result ResultModel
-
-
-type alias ResultModel =
+type alias Model =
     { session : Session
-    , butterflies : List Butterfly
     , isRegionMenuOpen : Bool
     , isCategoryMenuOpen : Bool
     , isColorMenuOpen : Bool
     }
 
 
-disableMenus : ResultModel -> ResultModel
-disableMenus resultModel =
-    ResultModel resultModel.session resultModel.butterflies False False False
-
-
-init : Session -> ( Model, Cmd Msg )
-init session =
-    ( Loading session, Cmd.map GotButterflyResponse Api.getButterflies )
-
-
-initResult : Session -> List Butterfly -> ( Model, Cmd Msg )
-initResult session butterflies =
-    ( Result <| ResultModel session butterflies False False False, Cmd.none )
-
-
 getKey : Model -> Nav.Key
 getKey model =
-    case model of
-        Loading s ->
-            s.key
-
-        Result m ->
-            m.session.key
+    model.session.key
 
 
 getSession : Model -> Session
 getSession model =
-    case model of
-        Loading s ->
-            s
+    model.session
 
-        Result m ->
-            m.session
+
+disableMenus : Model -> Model
+disableMenus model =
+    Model model.session False False False
+
+
+init : Session -> ( Model, Cmd Msg )
+init session =
+    initResult session
+
+
+initResult : Session -> ( Model, Cmd Msg )
+initResult session =
+    ( Model session False False False, Cmd.none )
 
 
 updateSession : Model -> Session -> Model
 updateSession model session =
-    case model of
-        Loading _ ->
-            Loading session
+    { model | session = session }
 
-        Result m ->
-            Result { m | session = session }
+
+lift : ( Session, Cmd Session.Msg ) -> Model -> ( Model, Cmd Msg )
+lift ( session, sessionCmd ) model =
+    ( updateSession model session, Cmd.map GotSessionMsg sessionCmd )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model ) of
-        ( GotButterflyResponse apiMsg, _ ) ->
-            case apiMsg of
-                Api.GotButterflies (Ok butterflies) ->
-                    let
-                        session =
-                            getSession model
-
-                        bs =
-                            butterflies
-                    in
-                    initResult session bs
-
-                Api.GotButterflies (Err _) ->
-                    let
-                        key =
-                            getKey model
-
-                        route =
-                            Route.routeToString Route.Error
-                    in
-                    ( model, Nav.pushUrl key route )
-
-        ( ButterflyClicked butterfly, Result m ) ->
+    case msg of
+        ButterflyClicked butterfly ->
             let
                 newSession =
-                    Session.update (Session.EnableModal butterfly) m.session
+                    Session.update (Session.EnableModal butterfly) model.session
             in
-            ( updateSession model newSession, Cmd.none )
+            lift newSession model
 
-        ( CategoryClicked category, Result m ) ->
+        CategoryClicked category ->
             let
                 newSession =
-                    Session.update (Session.FromDictionary <| Query.UpdateCategory category) m.session
+                    Session.update (Session.FromDictionary <| Query.UpdateCategory category) model.session
 
                 updatedModel =
-                    disableMenus m
+                    disableMenus model
             in
-            ( updateSession (Result updatedModel) newSession, Cmd.none )
+            lift newSession updatedModel
 
-        ( RegionClicked regionStr, Result m ) ->
+        RegionClicked regionStr ->
             case toRegion regionStr of
                 Err _ ->
                     ( model, Cmd.none )
@@ -138,66 +98,79 @@ update msg model =
                 Ok region ->
                     let
                         newSession =
-                            Session.update (Session.FromDictionary <| Query.UpdateRegion region) m.session
+                            Session.update (Session.FromDictionary <| Query.UpdateRegion region) model.session
 
                         updatedModel =
-                            disableMenus m
+                            disableMenus model
                     in
-                    ( updateSession (Result updatedModel) newSession, Cmd.none )
+                    lift newSession updatedModel
 
-        ( ColorClicked hexString, Result m ) ->
+        ColorClicked hexString ->
             let
                 newSession =
-                    Session.update (Session.FromDictionary <| Query.UpdateColor hexString) m.session
+                    Session.update (Session.FromDictionary <| Query.UpdateColor hexString) model.session
 
                 updatedModel =
-                    disableMenus m
+                    disableMenus model
             in
-            ( updateSession (Result updatedModel) newSession, Cmd.none )
+            lift newSession updatedModel
 
-        ( ToggleRegionMenu, Result m ) ->
+        ToggleRegionMenu ->
             let
                 updatedModel =
-                    { m | isRegionMenuOpen = not m.isRegionMenuOpen, isCategoryMenuOpen = False, isColorMenuOpen = False }
+                    { model
+                        | isRegionMenuOpen = not model.isRegionMenuOpen
+                        , isCategoryMenuOpen = False
+                        , isColorMenuOpen = False
+                    }
             in
-            ( Result updatedModel, Cmd.none )
+            ( updatedModel, Cmd.none )
 
-        ( ToggleCategoryMenu, Result m ) ->
+        ToggleCategoryMenu ->
             let
                 updatedModel =
-                    { m | isCategoryMenuOpen = not m.isCategoryMenuOpen, isRegionMenuOpen = False, isColorMenuOpen = False }
+                    { model
+                        | isCategoryMenuOpen = not model.isCategoryMenuOpen
+                        , isRegionMenuOpen = False
+                        , isColorMenuOpen = False
+                    }
             in
-            ( Result updatedModel, Cmd.none )
+            ( updatedModel, Cmd.none )
 
-        ( ToggleColorMenu, Result m ) ->
+        ToggleColorMenu ->
             let
                 updatedModel =
-                    { m | isColorMenuOpen = not m.isColorMenuOpen, isRegionMenuOpen = False, isCategoryMenuOpen = False }
+                    { model
+                        | isColorMenuOpen = not model.isColorMenuOpen
+                        , isRegionMenuOpen = False
+                        , isCategoryMenuOpen = False
+                    }
             in
-            ( Result updatedModel, Cmd.none )
+            ( updatedModel, Cmd.none )
 
-        ( ResetColor, Result m ) ->
+        ResetColor ->
             let
                 newSession =
-                    Session.update (Session.FromDictionary Query.ResetColor) m.session
+                    Session.update (Session.FromDictionary Query.ResetColor) model.session
             in
-            ( updateSession (Result m) newSession, Cmd.none )
+            lift newSession model
 
-        ( ResetRegion, Result m ) ->
+        ResetRegion ->
             let
                 newSession =
-                    Session.update (Session.FromDictionary Query.ResetRegion) m.session
+                    Session.update (Session.FromDictionary Query.ResetRegion) model.session
             in
-            ( updateSession (Result m) newSession, Cmd.none )
+            lift newSession model
 
-        ( ResetCategory, Result m ) ->
+        ResetCategory ->
             let
                 newSession =
-                    Session.update (Session.FromDictionary Query.ResetCategory) m.session
+                    Session.update (Session.FromDictionary Query.ResetCategory) model.session
             in
-            ( updateSession (Result m) newSession, Cmd.none )
+            lift newSession model
 
-        _ ->
+        GotSessionMsg _ ->
+            -- Dictionary can ignore this message since Main will take care of it
             ( model, Cmd.none )
 
 
@@ -209,22 +182,12 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    case model of
-        Loading _ ->
-            View.loadingView
-
-        Result m ->
-            resultView m
-
-
-resultView : ResultModel -> Html Msg
-resultView model =
     let
         filteredButterflies =
-            filterButterflies model.butterflies model.session.query
+            filterButterflies model.session.butterflies model.session.query
 
         categoryDropdown =
-            mkCategoryDropdown model.butterflies model
+            mkCategoryDropdown model.session.butterflies model
 
         regionDropdown =
             mkRegionDropdown model
@@ -282,16 +245,16 @@ tagList query =
                 list
 
 
-mkRegionDropdown : ResultModel -> Html Msg
+mkRegionDropdown : Model -> Html Msg
 mkRegionDropdown model =
     let
-        regionList =
-            List.map fromRegion [ OldNorth, NewNorth, NewTropical, TropicalAfrica, IndiaAustralia ]
+        regionNavList =
+            List.map fromRegion regionList
     in
-    View.searchDropdown "生息地" regionList ToggleRegionMenu model.isRegionMenuOpen False RegionClicked
+    View.searchDropdown "生息地" regionNavList ToggleRegionMenu model.isRegionMenuOpen False RegionClicked
 
 
-mkCategoryDropdown : List Butterfly -> ResultModel -> Html Msg
+mkCategoryDropdown : List Butterfly -> Model -> Html Msg
 mkCategoryDropdown butterflies model =
     let
         categoryList =
@@ -318,7 +281,7 @@ mkCategorySet query butterflies =
     List.foldr (\butterfly set -> Set.insert butterfly.category set) Set.empty filteredButterflies
 
 
-mkColorDropdown : ResultModel -> msg -> (String -> msg) -> Html msg
+mkColorDropdown : Model -> msg -> (String -> msg) -> Html msg
 mkColorDropdown resultModel toggleMsg clickedMsg =
     let
         colorList =
