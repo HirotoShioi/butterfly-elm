@@ -1,12 +1,12 @@
 module Butterfly.Type exposing (Butterfly, Color, Region(..), butterfliesDecoder, fromRegion, regionList, toRegion)
 
-import Json.Decode as Decode exposing (Decoder, float, list, string)
+import Json.Decode as Decode exposing (Decoder, field, float, int, list, nullable, string)
 import Json.Decode.Pipeline exposing (required)
 
 
 butterfliesDecoder : Decoder (List Butterfly)
 butterfliesDecoder =
-    list butterflyDecoder
+    field "butterflies" <| list butterflyDecoder
 
 
 type alias Butterfly =
@@ -17,6 +17,10 @@ type alias Butterfly =
     , jpName : String
     , engName : String
     , bgColor : String
+    , distribution : String
+    , openLength : Int
+    , diet : Maybe String
+    , remarks : Maybe String
     , dominantColors : List Color
     }
 
@@ -38,7 +42,12 @@ butterflyDecoder =
         |> required "jp_name" string
         |> required "eng_name" string
         |> required "bgcolor" string
-        |> required "dominant_colors" (list colorDecoder |> Decode.map computePercentage)
+        |> required "distribution" string
+        |> required "open_length" int
+        |> required "diet" (nullable string)
+        |> required "remarks" (nullable string)
+        |> required "dominant_colors"
+            (list colorDecoder |> Decode.map computePercentage)
 
 
 computePercentage : List Color -> List Color
