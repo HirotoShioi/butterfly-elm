@@ -11,6 +11,7 @@ import Html.Keyed as Keyed
 import Page.Dictionary.View as View
 import Session exposing (Session)
 import Set exposing (Set)
+import Util exposing (updateWith)
 
 
 type Msg
@@ -64,23 +65,16 @@ updateSession model session =
     { model | session = session }
 
 
-lift : ( Session, Cmd Session.Msg ) -> Model -> ( Model, Cmd Msg )
-lift ( session, sessionCmd ) model =
-    ( updateSession model session, Cmd.map GotSessionMsg sessionCmd )
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         CategoryClicked category ->
             let
-                newSession =
-                    Session.update (Session.FromDictionary <| Query.UpdateCategory category) model.session
-
                 updatedModel =
                     disableMenus model
             in
-            lift newSession updatedModel
+            Session.update (Session.FromDictionary <| Query.UpdateCategory category) model.session
+                |> updateWith (updateSession updatedModel) GotSessionMsg
 
         RegionClicked regionStr ->
             case toRegion regionStr of
@@ -89,23 +83,19 @@ update msg model =
 
                 Ok region ->
                     let
-                        newSession =
-                            Session.update (Session.FromDictionary <| Query.UpdateRegion region) model.session
-
                         updatedModel =
                             disableMenus model
                     in
-                    lift newSession updatedModel
+                    Session.update (Session.FromDictionary <| Query.UpdateRegion region) model.session
+                        |> updateWith (updateSession updatedModel) GotSessionMsg
 
         ColorClicked hexString ->
             let
-                newSession =
-                    Session.update (Session.FromDictionary <| Query.UpdateColor hexString) model.session
-
                 updatedModel =
                     disableMenus model
             in
-            lift newSession updatedModel
+            Session.update (Session.FromDictionary <| Query.UpdateColor hexString) model.session
+                |> updateWith (updateSession updatedModel) GotSessionMsg
 
         ToggleRegionMenu ->
             let
@@ -141,25 +131,16 @@ update msg model =
             ( updatedModel, Cmd.none )
 
         ResetColor ->
-            let
-                newSession =
-                    Session.update (Session.FromDictionary Query.ResetColor) model.session
-            in
-            lift newSession model
+            Session.update (Session.FromDictionary Query.ResetColor) model.session
+                |> updateWith (updateSession model) GotSessionMsg
 
         ResetRegion ->
-            let
-                newSession =
-                    Session.update (Session.FromDictionary Query.ResetRegion) model.session
-            in
-            lift newSession model
+            Session.update (Session.FromDictionary Query.ResetRegion) model.session
+                |> updateWith (updateSession model) GotSessionMsg
 
         ResetCategory ->
-            let
-                newSession =
-                    Session.update (Session.FromDictionary Query.ResetCategory) model.session
-            in
-            lift newSession model
+            Session.update (Session.FromDictionary Query.ResetCategory) model.session
+                |> updateWith (updateSession model) GotSessionMsg
 
         GotSessionMsg _ ->
             -- Dictionary can ignore this message since Main will take care of it

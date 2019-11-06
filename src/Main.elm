@@ -25,6 +25,7 @@ import Page.Reference as Ref
 import Route exposing (Route)
 import Session as S exposing (Session)
 import Url
+import Util exposing (updateWith)
 
 
 
@@ -214,13 +215,6 @@ changeRouteTo maybeRoute model =
 
 
 -- Map over submodel as well as submsg to main
-
-
-updateWith : (subModel -> Model) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
-updateWith toModel toMsg ( subModel, subCmd ) =
-    ( toModel subModel
-    , Cmd.map toMsg subCmd
-    )
 
 
 type Msg

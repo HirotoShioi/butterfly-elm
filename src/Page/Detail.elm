@@ -12,6 +12,7 @@ import Html.Attributes exposing (class, src, style)
 import Html.Events exposing (onClick)
 import Route
 import Session exposing (Session)
+import Util exposing (updateWith)
 
 
 type alias Model =
@@ -51,13 +52,8 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ColorClicked hexColor ->
-            let
-                ( updatedSession, sessionCmd ) =
-                    Session.update (Session.FromDetail <| Query.UpdateColor hexColor) model.session
-            in
-            ( { model | session = updatedSession }
-            , Cmd.map GotSessionMsg sessionCmd
-            )
+            Session.update (Session.FromDetail <| Query.UpdateColor hexColor) model.session
+                |> updateWith (updateSession model) GotSessionMsg
 
         RegionClicked regionStr ->
             case toRegion regionStr of
@@ -65,29 +61,16 @@ update msg model =
                     ( model, Cmd.none )
 
                 Ok region ->
-                    let
-                        ( updatedSession, sessionCmd ) =
-                            Session.update (Session.FromDetail <| Query.UpdateRegion region) model.session
-                    in
-                    ( { model | session = updatedSession }
-                    , Cmd.map GotSessionMsg sessionCmd
-                    )
+                    Session.update (Session.FromDetail <| Query.UpdateRegion region) model.session
+                        |> updateWith (updateSession model) GotSessionMsg
 
         CategoryClicked category ->
-            let
-                ( updatedSession, sessionCmd ) =
-                    Session.update (Session.FromDetail <| Query.UpdateCategory category) model.session
-            in
-            ( { model | session = updatedSession }
-            , Cmd.map GotSessionMsg sessionCmd
-            )
+            Session.update (Session.FromDetail <| Query.UpdateCategory category) model.session
+                |> updateWith (updateSession model) GotSessionMsg
 
         GotSessionMsg sessionMsg ->
-            let
-                ( updatedSession, sessionCmd ) =
-                    Session.update sessionMsg model.session
-            in
-            ( { model | session = updatedSession }, Cmd.map GotSessionMsg sessionCmd )
+            Session.update sessionMsg model.session
+                |> updateWith (updateSession model) GotSessionMsg
 
 
 view : Model -> Html Msg
