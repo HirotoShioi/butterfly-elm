@@ -212,7 +212,7 @@ changeRouteTo maybeRoute model =
                     in
                     case mButterfly of
                         Nothing ->
-                            ( Error session, Cmd.none )
+                            ( NotFound session, Cmd.none )
 
                         Just butterfly ->
                             updateWith Detail GotDetailMessage (Detail.init session butterfly)
@@ -231,6 +231,7 @@ type Msg
     | MainClicked
     | GotSessionMsg S.Msg
     | GotDetailMessage Detail.Msg
+    | GotNotFoundMsg NotFound.Msg
 
 
 
@@ -293,13 +294,18 @@ update msg model =
                         Err _ ->
                             ( Error s, Cmd.none )
 
-                -- If GotSessionMsg was triggered while the model is Loading, ignore it
+                -- If any other message was being triggered while the model is at Loading
+                -- , ignore it
                 _ ->
                     ( model, Cmd.none )
 
         ( GotSessionMsg sessionMsg, someModel ) ->
             S.update sessionMsg (getSession someModel)
                 |> updateWith (updateSession someModel) GotSessionMsg
+
+        ( GotNotFoundMsg notFoundMsg, NotFound session ) ->
+            NotFound.update notFoundMsg session
+                |> updateWith NotFound GotNotFoundMsg
 
         ( _, _ ) ->
             ( model, Cmd.none )
@@ -313,25 +319,25 @@ view : Model -> Browser.Document Msg
 view model =
     case model of
         Error s ->
-            toViewNoOp s Page.Error Error.view
+            toHeroView s Page.Error Error.view (\_ -> NoOp)
 
         NotFound s ->
-            toViewNoOp s Page.NotFound NotFound.view
+            toHeroView s Page.NotFound (NotFound.view s) GotNotFoundMsg
 
         Home s ->
-            toViewNoOp s Page.Home Home.view
+            toHeroView s Page.Home Home.view (\_ -> NoOp)
 
         Reference s ->
-            toViewNoOp s Page.Reference Ref.view
+            toHeroView s Page.Reference Ref.view (\_ -> NoOp)
 
         Category s ->
-            toViewNoOp s Page.Category Category.view
+            toHeroView s Page.Category Category.view (\_ -> NoOp)
 
         Description s ->
-            toViewNoOp s Page.Description Desc.view
+            toHeroView s Page.Description Desc.view (\_ -> NoOp)
 
         Area s ->
-            toViewNoOp s Page.Area Area.view
+            toHeroView s Page.Area Area.view (\_ -> NoOp)
 
         Loading s _ ->
             -- Loading
@@ -346,14 +352,14 @@ view model =
             toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMessage (Dic.view submodel)
 
 
-toViewNoOp : Session -> Page -> Html msg -> Browser.Document Msg
-toViewNoOp session page content =
+toHeroView : Session -> Page -> Html msg -> (msg -> Msg) -> Browser.Document Msg
+toHeroView session page content liftMsg =
     let
         title =
             Page.toTitle page
 
         body =
-            mainView session page (heroView title (\_ -> NoOp) content)
+            mainView session page (heroView title liftMsg content)
     in
     Browser.Document title body
 
