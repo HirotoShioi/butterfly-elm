@@ -10,7 +10,6 @@ import Butterfly.Api as Api
 import Html exposing (Html, div, main_, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
-import Modal
 import NavBar
 import Page exposing (Page)
 import Page.Area as Area
@@ -151,7 +150,7 @@ init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
         ( initSession, sessionCmd ) =
-            S.init key NavBar.init Nothing
+            S.init key NavBar.init
 
         liftedSessionCmd =
             Cmd.map GotSessionMsg sessionCmd
@@ -231,7 +230,6 @@ type Msg
     | GotNavBarMessage NavBar.Msg
     | NoOp
     | MainClicked
-    | GotModalMessage Modal.Msg
     | GotSessionMsg S.Msg
     | GotDetailMessage Detail.Msg
 
@@ -273,10 +271,6 @@ update msg model =
         ( MainClicked, someModel ) ->
             S.update (S.GotNavMessage NavBar.DisableMenu) (getSession someModel)
                 |> updateWith (updateSession someModel) GotSessionMsg
-
-        ( GotModalMessage modalMsg, someModel ) ->
-            Modal.update modalMsg (getSession someModel)
-                |> updateWith (updateSession someModel) GotModalMessage
 
         ( GotNavBarMessage navMsg, someModel ) ->
             S.update (S.GotNavMessage navMsg) (getSession someModel)
@@ -380,8 +374,7 @@ toView session page toMsg content =
 mainView : Session -> Page -> Html Msg -> List (Html Msg)
 mainView session page content =
     [ main_ []
-        [ Html.map GotModalMessage <| Modal.view session
-        , Html.map GotNavBarMessage <| NavBar.view page session.navModel
+        [ Html.map GotNavBarMessage <| NavBar.view page session.navModel
         , columns myColumnsModifiers
             [ onClick MainClicked ]
             [ content ]
@@ -392,8 +385,7 @@ mainView session page content =
 detailView : Session -> Page -> Html Msg -> List (Html Msg)
 detailView session page content =
     [ main_ []
-        [ Html.map GotModalMessage <| Modal.view session
-        , Html.map GotNavBarMessage <| NavBar.view page session.navModel
+        [ Html.map GotNavBarMessage <| NavBar.view page session.navModel
         , columns detailColumnsModifiers
             [ onClick MainClicked ]
             [ div [ class "column is-two-thirds" ] [ content ]

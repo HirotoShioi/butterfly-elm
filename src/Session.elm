@@ -11,19 +11,15 @@ import Route
 type alias Session =
     { key : Nav.Key
     , navModel : NavBar.Model
-    , modalContent : Maybe Butterfly
     , query : Query
     , butterflies : List Butterfly
     }
 
 
 type Msg
-    = DisableModal
-    | DisableMenu
-    | EnableModal Butterfly
+    = DisableMenu
     | FromDictionary Query.Msg
     | FromDetail Query.Msg
-    | FromModal Query.Msg
     | GotButterflyResponse Api.Msg
     | GotNavMessage NavBar.Msg
 
@@ -38,12 +34,6 @@ update msg session =
         DisableMenu ->
             ( { session | navModel = NavBar.init }, Cmd.none )
 
-        DisableModal ->
-            ( { session | modalContent = Nothing }, Cmd.none )
-
-        EnableModal butterfly ->
-            ( { session | modalContent = Just butterfly }, Cmd.none )
-
         FromDictionary queryMsg ->
             let
                 updatedQuery =
@@ -51,19 +41,12 @@ update msg session =
             in
             ( { session | query = updatedQuery }, Cmd.none )
 
-        FromModal queryMsg ->
-            let
-                updatedQuery =
-                    Query.update Query.init queryMsg
-            in
-            ( { session | query = updatedQuery, modalContent = Nothing }, Cmd.none )
-
         FromDetail queryMsg ->
             let
                 updatedQuery =
                     Query.update Query.init queryMsg
             in
-            ( { session | query = updatedQuery, modalContent = Nothing }, Nav.pushUrl (getKey session) (Route.routeToString Route.Dictionary) )
+            ( { session | query = updatedQuery }, Nav.pushUrl (getKey session) (Route.routeToString Route.Dictionary) )
 
         GotButterflyResponse apiMsg ->
             case apiMsg of
@@ -90,9 +73,9 @@ update msg session =
             )
 
 
-init : Nav.Key -> NavBar.Model -> Maybe Butterfly -> ( Session, Cmd Msg )
-init key model modalContent =
-    ( Session key model modalContent Query.init [], Cmd.map GotButterflyResponse getButterflies )
+init : Nav.Key -> NavBar.Model -> ( Session, Cmd Msg )
+init key model =
+    ( Session key model Query.init [], Cmd.map GotButterflyResponse getButterflies )
 
 
 getKey : Session -> Nav.Key
