@@ -142,9 +142,9 @@ update msg model =
             Session.update (Session.FromDictionary Query.ResetCategory) model.session
                 |> updateWith (updateSession model) GotSessionMsg
 
-        GotSessionMsg _ ->
-            -- Dictionary can ignore this message since Main will take care of it
-            ( model, Cmd.none )
+        GotSessionMsg sessionMsg ->
+            Session.update sessionMsg model.session
+                |> updateWith (updateSession model) GotSessionMsg
 
 
 

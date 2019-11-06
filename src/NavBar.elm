@@ -54,7 +54,18 @@ view page isOpen =
                 , navLink page Route.Area <| Page.toTitle Page.Area
                 , navLink page Route.Reference <| Page.toTitle Page.Reference
                 ]
-            , navbarEnd [] []
+            , navbarEnd []
+                [ navbarItem True
+                    []
+                    [ div [ class "buttons" ]
+                        [ a
+                            [ class "button is-info"
+                            , href "https://github.com/HirotoShioi/butterfly-elm"
+                            ]
+                            [ text "Github" ]
+                        ]
+                    ]
+                ]
             ]
         ]
 

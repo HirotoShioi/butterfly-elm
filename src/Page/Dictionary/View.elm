@@ -9,6 +9,7 @@ import Html exposing (Attribute, Html, a, div, i, img, span, text)
 import Html.Attributes exposing (attribute, class, disabled, href, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
+import Url.Builder exposing (relative)
 
 
 searchDropdown :
@@ -113,4 +114,4 @@ showButterflies butterfly =
 
 mkLink : String -> String
 mkLink name =
-    String.concat [ "#/detail/", name ]
+    relative [ "#", "detail", name ] []

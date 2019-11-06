@@ -202,10 +202,15 @@ changeRouteTo maybeRoute model =
 
                 Just (Route.Detail butterfly_name) ->
                     let
-                        butterflyList =
-                            List.filter (\b -> b.engName == butterfly_name) session.butterflies
+                        filterByName name =
+                            List.filter (\b -> b.engName == name) session.butterflies
+
+                        mButterfly =
+                            Maybe.andThen
+                                (\name -> filterByName name |> List.head)
+                                (Url.percentDecode butterfly_name)
                     in
-                    case List.head butterflyList of
+                    case mButterfly of
                         Nothing ->
                             ( Error session, Cmd.none )
 
