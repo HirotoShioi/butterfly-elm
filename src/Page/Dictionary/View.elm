@@ -96,8 +96,8 @@ searchTagModifiers =
     B.TagModifiers B.Medium B.Default False
 
 
-showButterflies : Butterfly -> (Butterfly -> msg) -> Html msg
-showButterflies butterfly clickedMsg =
+showButterflies : Butterfly -> Html msg
+showButterflies butterfly =
     a [ href (mkLink butterfly.engName), class "column is-one-third-tablet is-one-fifth-desktop" ]
         [ B.card [ class "butterfly-card" ]
             [ B.cardImage [] [ butterflyImage butterfly.imgSrc ]

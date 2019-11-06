@@ -14,8 +14,7 @@ import Set exposing (Set)
 
 
 type Msg
-    = ButterflyClicked Butterfly
-    | ToggleRegionMenu
+    = ToggleRegionMenu
     | RegionClicked String
     | ToggleCategoryMenu
     | CategoryClicked String
@@ -73,13 +72,6 @@ lift ( session, sessionCmd ) model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ButterflyClicked butterfly ->
-            let
-                newSession =
-                    Session.update (Session.EnableModal butterfly) model.session
-            in
-            lift newSession model
-
         CategoryClicked category ->
             let
                 newSession =
@@ -211,7 +203,7 @@ view model =
             Keyed.node "div" [ class "columns  is-multiline" ] <|
                 List.map
                     (\butterfly ->
-                        ( butterfly.jpName, View.showButterflies butterfly ButterflyClicked )
+                        ( butterfly.jpName, View.showButterflies butterfly )
                     )
                     filteredButterflies
         ]

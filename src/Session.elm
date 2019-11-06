@@ -22,6 +22,7 @@ type Msg
     | DisableMenu
     | EnableModal Butterfly
     | FromDictionary Query.Msg
+    | FromDetail Query.Msg
     | FromModal Query.Msg
     | GotButterflyResponse Api.Msg
     | GotNavMessage NavBar.Msg
@@ -56,6 +57,13 @@ update msg session =
                     Query.update Query.init queryMsg
             in
             ( { session | query = updatedQuery, modalContent = Nothing }, Cmd.none )
+
+        FromDetail queryMsg ->
+            let
+                updatedQuery =
+                    Query.update Query.init queryMsg
+            in
+            ( { session | query = updatedQuery, modalContent = Nothing }, Nav.pushUrl (getKey session) (Route.routeToString Route.Dictionary) )
 
         GotButterflyResponse apiMsg ->
             case apiMsg of

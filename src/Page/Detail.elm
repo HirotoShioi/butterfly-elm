@@ -1,12 +1,12 @@
-module Page.Detail exposing (..)
+module Page.Detail exposing (Model, Msg, getKey, getSession, init, update, updateSession, view)
 
 import Browser.Navigation as Nav
 import Bulma.Columns exposing (ColumnsModifiers, Display(..), Gap(..), columns)
-import Bulma.Elements exposing (ImageShape(..), ImageSize(..), TitleSize(..), button, buttonModifiers, image, title)
+import Bulma.Elements exposing (ImageShape(..), ImageSize(..), TitleSize(..), image, title)
 import Bulma.Layout exposing (SectionSpacing(..), section)
 import Bulma.Modifiers.Typography exposing (Color(..), textColor)
 import Butterfly.Query as Query
-import Butterfly.Type exposing (Butterfly, Color)
+import Butterfly.Type exposing (Butterfly, Color, toRegion)
 import Html exposing (Html, a, div, h6, img, p, text)
 import Html.Attributes exposing (class, src, style)
 import Html.Events exposing (onClick)
@@ -43,6 +43,8 @@ updateSession model session =
 type Msg
     = ColorClicked String
     | GotSessionMsg Session.Msg
+    | RegionClicked String
+    | CategoryClicked String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -51,13 +53,33 @@ update msg model =
         ColorClicked hexColor ->
             let
                 ( updatedSession, sessionCmd ) =
-                    Session.update (Session.FromDictionary <| Query.UpdateColor hexColor) model.session
+                    Session.update (Session.FromDetail <| Query.UpdateColor hexColor) model.session
             in
             ( { model | session = updatedSession }
-            , Cmd.batch
-                [ Cmd.map GotSessionMsg sessionCmd
-                , Nav.pushUrl (getKey model) (Route.routeToString Route.Dictionary)
-                ]
+            , Cmd.map GotSessionMsg sessionCmd
+            )
+
+        RegionClicked regionStr ->
+            case toRegion regionStr of
+                Err _ ->
+                    ( model, Cmd.none )
+
+                Ok region ->
+                    let
+                        ( updatedSession, sessionCmd ) =
+                            Session.update (Session.FromDetail <| Query.UpdateRegion region) model.session
+                    in
+                    ( { model | session = updatedSession }
+                    , Cmd.map GotSessionMsg sessionCmd
+                    )
+
+        CategoryClicked category ->
+            let
+                ( updatedSession, sessionCmd ) =
+                    Session.update (Session.FromDetail <| Query.UpdateCategory category) model.session
+            in
+            ( { model | session = updatedSession }
+            , Cmd.map GotSessionMsg sessionCmd
             )
 
         GotSessionMsg sessionMsg ->
@@ -115,9 +137,9 @@ butterflyDescription butterfly =
     div []
         ([ title H4 [] [ text butterfly.jpName ]
          , h6 [ class "subtitle", textColor Grey ] [ text butterfly.engName ]
-         , fieldValueView "生息地域" butterfly.region
-         , fieldValueView "属" butterfly.category
-         , fieldValueView "開長" (String.concat [ String.fromInt butterfly.openLength, "mm" ])
+         , fieldValueView "生息地域" butterfly.region (Just RegionClicked)
+         , fieldValueView "属" butterfly.category (Just CategoryClicked)
+         , fieldValueView "開長" (String.concat [ String.fromInt butterfly.openLength, "mm" ]) Nothing
          ]
             ++ (case butterfly.diet of
                     Nothing ->
@@ -131,11 +153,16 @@ butterflyDescription butterfly =
         )
 
 
-fieldValueView : String -> String -> Html Msg
-fieldValueView field value =
+fieldValueView : String -> String -> Maybe (String -> Msg) -> Html Msg
+fieldValueView field value mClickMsg =
     div [ class "field-value-wrapper" ]
         [ h6 [ class "subtitle field-name" ] [ text field ]
-        , p [] [ text value ]
+        , case mClickMsg of
+            Nothing ->
+                p [] [ text value ]
+
+            Just clickMsg ->
+                a [ onClick <| clickMsg value ] [ text value ]
         ]
 
 
