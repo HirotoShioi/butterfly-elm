@@ -40,7 +40,7 @@ view page isOpen =
             (myNavbarBurger isOpen)
             [ navbarItem False
                 []
-                [ a [ href "/" ]
+                [ a [ href "#/" ]
                     [ img [ src "https://package.elm-lang.org/assets/favicon.ico" ] []
                     ]
                 ]
