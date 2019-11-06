@@ -4,7 +4,7 @@ import Browser.Navigation as Nav
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Url exposing (Url)
-import Url.Parser exposing (Parser, map, oneOf, s, top)
+import Url.Parser exposing ((</>), Parser, map, oneOf, parse, s, string, top)
 
 
 type Route
@@ -15,11 +15,16 @@ type Route
     | Area
     | Dictionary
     | Error
+    | Detail String
 
 
 parseUrl : Url -> Maybe Route
 parseUrl url =
-    Url.Parser.parse parser url
+    -- The RealWorld spec treats the fragment like a path.
+    -- This makes it *literally* the path, so we can proceed
+    -- with parsing as if it had been a normal path all along.
+    { url | path = Maybe.withDefault "" url.fragment, fragment = Nothing }
+        |> parse parser
 
 
 replaceUrl : Nav.Key -> Route -> Cmd msg
@@ -37,6 +42,7 @@ parser =
         , map Area (s "area")
         , map Dictionary (s "dictionary")
         , map Error (s "error")
+        , map Detail (s "detail" </> string)
         ]
 
 
@@ -70,5 +76,8 @@ routeToString page =
 
                 Error ->
                     [ "error" ]
+
+                _ ->
+                    []
     in
-    String.join "/" pieces
+    "#/" ++ String.join "/" pieces

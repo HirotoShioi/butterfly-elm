@@ -5,8 +5,8 @@ import Bulma.Elements as B
 import Bulma.Modifiers as B
 import Bulma.Modifiers.Typography exposing (Color(..), Size(..), textCentered, textColor, textSize)
 import Butterfly.Type exposing (Butterfly)
-import Html exposing (Attribute, Html, div, i, img, span, text)
-import Html.Attributes exposing (attribute, class, disabled, src, style)
+import Html exposing (Attribute, Html, a, div, i, img, span, text)
+import Html.Attributes exposing (attribute, class, disabled, href, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
 
@@ -98,8 +98,8 @@ searchTagModifiers =
 
 showButterflies : Butterfly -> (Butterfly -> msg) -> Html msg
 showButterflies butterfly clickedMsg =
-    div [ class "column is-one-third-tablet is-one-fifth-desktop" ]
-        [ B.card [ class "butterfly-card", onClick (clickedMsg butterfly) ]
+    a [ href (mkLink butterfly.engName), class "column is-one-third-tablet is-one-fifth-desktop" ]
+        [ B.card [ class "butterfly-card" ]
             [ B.cardImage [] [ butterflyImage butterfly.imgSrc ]
             , B.cardContent [ textCentered, textSize Small ]
                 [ div []
@@ -109,3 +109,8 @@ showButterflies butterfly clickedMsg =
                 ]
             ]
         ]
+
+
+mkLink : String -> String
+mkLink name =
+    String.concat [ "#/detail/", name ]

@@ -16,6 +16,7 @@ import Page exposing (Page)
 import Page.Area as Area
 import Page.Category as Category
 import Page.Description as Desc
+import Page.Detail as Detail
 import Page.Dictionary as Dic
 import Page.Error as Error
 import Page.Home as Home
@@ -41,6 +42,7 @@ type Model
     | Dictionary Dic.Model
     | Error Session
     | Loading Session Url.Url -- Page that will load after session initiation has been completed
+    | Detail Detail.Model
 
 
 getKey : Model -> Nav.Key
@@ -73,6 +75,9 @@ getKey model =
         Loading s _ ->
             S.getKey s
 
+        Detail m ->
+            Detail.getKey m
+
 
 getSession : Model -> Session
 getSession model =
@@ -104,6 +109,9 @@ getSession model =
         Dictionary m ->
             Dic.getSession m
 
+        Detail m ->
+            Detail.getSession m
+
 
 updateSession : Model -> Session -> Model
 updateSession model s =
@@ -134,6 +142,9 @@ updateSession model s =
 
         Dictionary m ->
             Dictionary (Dic.updateSession m s)
+
+        Detail m ->
+            Detail (Detail.updateSession m s)
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -189,6 +200,18 @@ changeRouteTo maybeRoute model =
                 Just Route.Error ->
                     ( Error session, Cmd.none )
 
+                Just (Route.Detail butterfly_name) ->
+                    let
+                        butterflyList =
+                            List.filter (\b -> b.engName == butterfly_name) session.butterflies
+                    in
+                    case List.head butterflyList of
+                        Nothing ->
+                            ( Error session, Cmd.none )
+
+                        Just butterfly ->
+                            updateWith Detail GotDetailMessage (Detail.init session butterfly)
+
 
 
 -- Map over submodel as well as submsg to main
@@ -210,6 +233,7 @@ type Msg
     | MainClicked
     | GotModalMessage Modal.Msg
     | GotSessionMsg S.Msg
+    | GotDetailMessage Detail.Msg
 
 
 
@@ -222,7 +246,12 @@ update msg model =
         ( UrlRequested urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl (getKey model) (Url.toString url) )
+                    case url.fragment of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just _ ->
+                            ( model, Nav.pushUrl (getKey model) (Url.toString url) )
 
                 Browser.External "" ->
                     ( model, Cmd.none )
@@ -236,6 +265,10 @@ update msg model =
         ( GotDictionaryMessage submsg, Dictionary submodel ) ->
             Dic.update submsg submodel
                 |> updateWith Dictionary GotDictionaryMessage
+
+        ( GotDetailMessage submsg, Detail submodel ) ->
+            Detail.update submsg submodel
+                |> updateWith Detail GotDetailMessage
 
         ( MainClicked, someModel ) ->
             S.update (S.GotNavMessage NavBar.DisableMenu) (getSession someModel)
@@ -311,6 +344,11 @@ view model =
             -- Loading
             Browser.Document (Page.toTitle Page.Loading) (mainView s Page.Loading Loading.view)
 
+        Detail m ->
+            Browser.Document
+                m.butterfly.jpName
+                (detailView m.session Page.Detail (Html.map GotDetailMessage <| Detail.view m))
+
         Dictionary submodel ->
             toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMessage (Dic.view submodel)
 
@@ -351,6 +389,19 @@ mainView session page content =
     ]
 
 
+detailView : Session -> Page -> Html Msg -> List (Html Msg)
+detailView session page content =
+    [ main_ []
+        [ Html.map GotModalMessage <| Modal.view session
+        , Html.map GotNavBarMessage <| NavBar.view page session.navModel
+        , columns detailColumnsModifiers
+            [ onClick MainClicked ]
+            [ div [ class "column is-two-thirds" ] [ content ]
+            ]
+        ]
+    ]
+
+
 sectionView : (msg -> Msg) -> Html msg -> Html Msg
 sectionView toMsg content =
     section NotSpaced
@@ -381,6 +432,15 @@ myHeroModifiers =
     { bold = False
     , size = Small
     , color = Default
+    }
+
+
+detailColumnsModifiers : ColumnsModifiers
+detailColumnsModifiers =
+    { multiline = True
+    , gap = Gap0
+    , display = TabletAndBeyond
+    , centered = True
     }
 
 

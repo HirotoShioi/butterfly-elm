@@ -72,7 +72,7 @@ butterflyView mButterfly =
         Just butterfly ->
             box [ class "butterfly-modal-box" ]
                 [ butterflyImage butterfly.imgSrc
-                , colorBar butterfly.dominantColors
+                , colorBar butterfly.dominantColors ColorClicked
                 , div [ class "content butterfly-modal-content" ]
                     [ title H5 [] [ text butterfly.jpName ]
                     , h6 [ class "subtitle", textColor Grey ] [ text butterfly.engName ]
@@ -108,18 +108,18 @@ isJust mValue =
             True
 
 
-colorBar : List Color -> Html Msg
-colorBar colors =
+colorBar : List Color -> (String -> Msg) -> Html Msg
+colorBar colors toMsg =
     div [ class "color-wrapper" ]
         [ div [ class "color-container" ] <|
-            List.map colorBlockView <|
+            List.map (colorBlockView toMsg) <|
                 List.reverse <|
                     List.sortBy (\color -> color.pixelFraction) colors
         ]
 
 
-colorBlockView : Color -> Html Msg
-colorBlockView color =
+colorBlockView : (String -> Msg) -> Color -> Html Msg
+colorBlockView toMsg color =
     let
         percentage =
             color.pixelFraction * 100
@@ -131,7 +131,7 @@ colorBlockView color =
         [ class "color"
         , style "width" percentageText
         , style "background-color" color.hexColor
-        , onClick <| ColorClicked color.hexColor
+        , onClick <| toMsg color.hexColor
         ]
         []
 

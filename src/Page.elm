@@ -17,6 +17,7 @@ type Page
     | NotFound
     | Error
     | Loading
+    | Detail
 
 
 toTitle : Page -> String
@@ -48,3 +49,6 @@ toTitle page =
 
         Loading ->
             "読み込み中"
+
+        Detail ->
+            "蝶の図鑑"
