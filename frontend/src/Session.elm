@@ -12,7 +12,7 @@ type alias Session =
     { key : Nav.Key
     , navModel : NavBar.Model
     , query : Query
-    , butterflies : List Butterfly
+    , butterflies : Result String (List Butterfly)
     }
 
 
@@ -46,22 +46,17 @@ update msg session =
                 updatedQuery =
                     Query.update Query.init queryMsg
             in
-            ( { session | query = updatedQuery }, Nav.pushUrl (getKey session) (Route.routeToString Route.Dictionary) )
+            ( { session | query = updatedQuery }
+            , Nav.pushUrl (getKey session) (Route.routeToString Route.Dictionary)
+            )
 
         GotButterflyResponse apiMsg ->
             case apiMsg of
                 Api.GotButterflies (Ok butterflies) ->
-                    ( { session | butterflies = butterflies }, Cmd.none )
+                    ( { session | butterflies = Ok butterflies }, Cmd.none )
 
                 Api.GotButterflies (Err _) ->
-                    let
-                        key =
-                            getKey session
-
-                        route =
-                            Route.routeToString Route.Error
-                    in
-                    ( session, Nav.pushUrl key route )
+                    ( { session | butterflies = Err "Failed to load butterfly data" }, Cmd.none )
 
         GotNavMessage navMsg ->
             let
@@ -75,7 +70,7 @@ update msg session =
 
 init : Nav.Key -> NavBar.Model -> ( Session, Cmd Msg )
 init key model =
-    ( Session key model Query.init [], Cmd.map GotButterflyResponse getButterflies )
+    ( Session key model Query.init (Ok []), Cmd.map GotButterflyResponse getButterflies )
 
 
 getKey : Session -> Nav.Key
