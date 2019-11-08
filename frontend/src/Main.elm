@@ -201,21 +201,26 @@ changeRouteTo maybeRoute model =
                     ( Error session, Cmd.none )
 
                 Just (Route.Detail butterfly_name) ->
-                    let
-                        filterByName name =
-                            List.filter (\b -> b.engName == name) session.butterflies
+                    case session.butterflies of
+                        Ok butterflies ->
+                            let
+                                filterByName name =
+                                    List.filter (\b -> b.engName == name) butterflies
 
-                        mButterfly =
-                            Maybe.andThen
-                                (\name -> filterByName name |> List.head)
-                                (Url.percentDecode butterfly_name)
-                    in
-                    case mButterfly of
-                        Nothing ->
-                            ( NotFound session, Cmd.none )
+                                mButterfly =
+                                    Maybe.andThen
+                                        (\name -> filterByName name |> List.head)
+                                        (Url.percentDecode butterfly_name)
+                            in
+                            case mButterfly of
+                                Nothing ->
+                                    ( NotFound session, Cmd.none )
 
-                        Just butterfly ->
-                            updateWith Detail GotDetailMessage (Detail.init session butterfly)
+                                Just butterfly ->
+                                    updateWith Detail GotDetailMessage (Detail.init session butterfly)
+
+                        Err _ ->
+                            ( Error session, Cmd.none )
 
 
 
@@ -279,20 +284,15 @@ update msg model =
         ( GotSessionMsg sessionMsg, Loading s url ) ->
             case sessionMsg of
                 -- Intercept the Api response in order to redirect pages
-                S.GotButterflyResponse (Api.GotButterflies res) ->
-                    case res of
-                        Ok _ ->
-                            let
-                                ( session, cmd ) =
-                                    S.update sessionMsg s
+                S.GotButterflyResponse (Api.GotButterflies _) ->
+                    let
+                        ( session, cmd ) =
+                            S.update sessionMsg s
 
-                                ( someModel, routeCmd ) =
-                                    changeRouteTo (Route.parseUrl url) (Home session)
-                            in
-                            ( someModel, Cmd.batch [ routeCmd, Cmd.map GotSessionMsg cmd ] )
-
-                        Err _ ->
-                            ( Error s, Cmd.none )
+                        ( someModel, routeCmd ) =
+                            changeRouteTo (Route.parseUrl url) (Home session)
+                    in
+                    ( someModel, Cmd.batch [ routeCmd, Cmd.map GotSessionMsg cmd ] )
 
                 -- If any other message was being triggered while the model is at Loading
                 -- , ignore it

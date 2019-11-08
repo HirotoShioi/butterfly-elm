@@ -4,8 +4,8 @@ import Browser.Navigation as Nav
 import Bulma.Components as Components
 import Butterfly.Query as Query exposing (Query, filterButterflies)
 import Butterfly.Type exposing (Butterfly, Region(..), fromRegion, regionList, toRegion)
-import Html exposing (Html, div)
-import Html.Attributes exposing (class, style)
+import Html exposing (Html, a, div, p, text)
+import Html.Attributes exposing (class, href, style)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
 import Page.Dictionary.View as View
@@ -155,39 +155,44 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    let
-        filteredButterflies =
-            filterButterflies model.session.butterflies model.session.query
+    case model.session.butterflies of
+        Ok butterflies ->
+            let
+                filteredButterflies =
+                    filterButterflies butterflies model.session.query
 
-        categoryDropdown =
-            mkCategoryDropdown model.session.butterflies model
+                categoryDropdown =
+                    mkCategoryDropdown butterflies model
 
-        regionDropdown =
-            mkRegionDropdown model
+                regionDropdown =
+                    mkRegionDropdown model
 
-        colorDropdown =
-            mkColorDropdown model
-    in
-    div [ class "dictionary-view" ]
-        [ div [ class "dictionary-search-content" ]
-            [ div [ class "field is-grouped is-grouped-multiline" ]
-                [ div [ class "control" ] [ regionDropdown ]
-                , div [ class "control" ] [ categoryDropdown ]
-                , div [ class "control" ] [ colorDropdown ToggleColorMenu ColorClicked ]
+                colorDropdown =
+                    mkColorDropdown model
+            in
+            div [ class "dictionary-view" ]
+                [ div [ class "dictionary-search-content" ]
+                    [ div [ class "field is-grouped is-grouped-multiline" ]
+                        [ div [ class "control" ] [ regionDropdown ]
+                        , div [ class "control" ] [ categoryDropdown ]
+                        , div [ class "control" ] [ colorDropdown ToggleColorMenu ColorClicked ]
+                        ]
+                    , tagList model.session.query
+                    ]
+                , if List.isEmpty filteredButterflies then
+                    View.emptyView
+
+                  else
+                    Keyed.node "div" [ class "columns  is-multiline" ] <|
+                        List.map
+                            (\butterfly ->
+                                ( butterfly.jpName, View.showButterflies butterfly )
+                            )
+                            filteredButterflies
                 ]
-            , tagList model.session.query
-            ]
-        , if List.isEmpty filteredButterflies then
-            View.emptyView
 
-          else
-            Keyed.node "div" [ class "columns  is-multiline" ] <|
-                List.map
-                    (\butterfly ->
-                        ( butterfly.jpName, View.showButterflies butterfly )
-                    )
-                    filteredButterflies
-        ]
+        Err _ ->
+            View.errorView
 
 
 tagList : Query -> Html Msg

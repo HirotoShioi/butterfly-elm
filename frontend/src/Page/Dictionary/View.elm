@@ -1,11 +1,11 @@
-module Page.Dictionary.View exposing (colorTag, emptyView, searchDropdown, searchDropdownTrigger, searchTag, showButterflies)
+module Page.Dictionary.View exposing (colorTag, emptyView, errorView, searchDropdown, searchDropdownTrigger, searchTag, showButterflies)
 
 import Bulma.Components as B
 import Bulma.Elements as B
 import Bulma.Modifiers as B
 import Bulma.Modifiers.Typography exposing (Color(..), Size(..), textCentered, textColor, textSize)
 import Butterfly.Type exposing (Butterfly)
-import Html exposing (Attribute, Html, a, div, i, img, span, text)
+import Html exposing (Attribute, Html, a, div, i, img, p, span, text)
 import Html.Attributes exposing (attribute, class, disabled, href, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
@@ -115,3 +115,14 @@ showButterflies butterfly =
 mkLink : String -> String
 mkLink name =
     relative [ "#", "detail", name ] []
+
+
+errorView : Html msg
+errorView =
+    div [ class "columns" ]
+        [ div [ class "column is-8 is-offset-2" ]
+            [ B.title B.H4 [] [ text "データの読み込みに失敗しました。" ]
+            , p [] [ text "インターネットの接続等を確認の後再度読み込んでください。" ]
+            , a [ href "#/" ] [ text "ホームへ戻る" ]
+            ]
+        ]
