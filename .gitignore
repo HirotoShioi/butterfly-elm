@@ -1,14 +1,20 @@
+extractor/target
+**/*.rs.bk
+extractor/assets/
+extractor/secrets/
+*.key
+
 # Distribution
-build/
+frontend/build/
 
 # elm-package generated files
-elm-stuff
+frontend/elm-stuff
 
 # elm-repl generated files
-repl-temp-*
+frontend/repl-temp-*
 
 # Dependency directories
-node_modules
+frontend/node_modules
 
 # Desktop Services Store on macOS
 .DS_Store
