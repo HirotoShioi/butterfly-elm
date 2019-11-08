@@ -5,16 +5,16 @@ extractor/secrets/
 *.key
 
 # Distribution
-frontend/build/
+build/
 
 # elm-package generated files
-frontend/elm-stuff
+elm-stuff
 
 # elm-repl generated files
-frontend/repl-temp-*
+repl-temp-*
 
 # Dependency directories
-frontend/node_modules
+node_modules
 
 # Desktop Services Store on macOS
 .DS_Store

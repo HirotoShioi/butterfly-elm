@@ -18,7 +18,7 @@ getButterflies =
 
 gistUrl : String
 gistUrl =
-    "https://raw.githubusercontent.com/HirotoShioi/butterfly-elm/master/frontend/butterfly.json"
+    "https://raw.githubusercontent.com/HirotoShioi/butterfly-elm/master/butterfly.json"
 
 
 
