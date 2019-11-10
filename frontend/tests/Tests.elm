@@ -1,9 +1,11 @@
 module Tests exposing (..)
 
-import Test exposing (..)
 import Expect
 import Route exposing (Route)
+import Test exposing (..)
 import Url exposing (Url)
+
+
 
 -- Check out https://package.elm-lang.org/packages/elm-explorations/test/latest to learn more about testing in Elm!
 
@@ -23,10 +25,11 @@ all =
 testParse : String -> String -> Maybe Route -> Test
 testParse name path expectedRoute =
     test name <|
-        \_ -> 
+        \_ ->
             Url.fromString ("http://example.com/#" ++ path)
                 |> Maybe.andThen Route.parseUrl
                 |> Expect.equal expectedRoute
+
 
 routeTest : Test
 routeTest =
