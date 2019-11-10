@@ -1,4 +1,4 @@
-module Navigation exposing (Nav, initWithStub, initWithKey, map)
+module Navigation exposing (Nav, initWithKey, initWithStub, map)
 
 import Browser.Navigation as Navigation
 
