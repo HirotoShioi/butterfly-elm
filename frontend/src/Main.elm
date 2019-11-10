@@ -11,6 +11,7 @@ import Html exposing (Html, div, main_, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import NavBar
+import Navigation as Nav exposing (Nav)
 import Page exposing (Page)
 import Page.Area as Area
 import Page.Category as Category
@@ -45,38 +46,42 @@ type Model
     | Detail Detail.Model
 
 
-getKey : Model -> Nav.Key
-getKey model =
+getNav : Model -> Nav Msg
+getNav model =
+    let
+        mapWith nav =
+            Nav.map GotSessionMsg nav
+    in
     case model of
         Error s ->
-            S.getKey s
+            mapWith <| S.getNav s
 
         Home s ->
-            S.getKey s
+            mapWith <| S.getNav s
 
         NotFound s ->
-            S.getKey s
+            mapWith <| S.getNav s
 
         Reference s ->
-            S.getKey s
+            mapWith <| S.getNav s
 
         Area s ->
-            S.getKey s
+            mapWith <| S.getNav s
 
         Category s ->
-            S.getKey s
+            mapWith <| S.getNav s
 
         Description s ->
-            S.getKey s
+            mapWith <| S.getNav s
 
         Dictionary m ->
-            Dic.getKey m
+            Nav.map GotDictionaryMessage <| Dic.getNav m
 
         Loading s _ ->
-            S.getKey s
+            mapWith <| S.getNav s
 
         Detail m ->
-            Detail.getKey m
+            Nav.map GotDetailMessage <| Detail.getNav m
 
 
 getSession : Model -> Session
@@ -151,7 +156,7 @@ init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
         ( initSession, sessionCmd ) =
-            S.init key NavBar.init
+            S.init (Nav.initWithKey key) NavBar.init
 
         liftedSessionCmd =
             Cmd.map GotSessionMsg sessionCmd
@@ -254,7 +259,11 @@ update msg model =
                             ( model, Cmd.none )
 
                         Just _ ->
-                            ( model, Nav.pushUrl (getKey model) (Url.toString url) )
+                            let
+                                nav =
+                                    getNav model
+                            in
+                            ( model, nav.pushUrl (Url.toString url) )
 
                 Browser.External "" ->
                     ( model, Cmd.none )
