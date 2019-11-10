@@ -1,13 +1,14 @@
-module Page.Dictionary exposing (Model, Msg(..), getKey, getSession, init, update, updateSession, view)
+module Page.Dictionary exposing (Model, Msg(..), getNav, getSession, init, update, updateSession, view)
 
 import Browser.Navigation as Nav
 import Bulma.Components as Components
 import Butterfly.Query as Query exposing (Query, filterButterflies)
 import Butterfly.Type exposing (Butterfly, Region(..), fromRegion, regionList, toRegion)
-import Html exposing (Html, a, div, p, text)
-import Html.Attributes exposing (class, href, style)
+import Html exposing (Html, div)
+import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
+import Navigation as Nav exposing (Nav)
 import Page.Dictionary.View as View
 import Session exposing (Session)
 import Set exposing (Set)
@@ -35,9 +36,9 @@ type alias Model =
     }
 
 
-getKey : Model -> Nav.Key
-getKey model =
-    model.session.key
+getNav : Model -> Nav Msg
+getNav model =
+    Nav.map GotSessionMsg model.session.nav
 
 
 getSession : Model -> Session

@@ -1,4 +1,4 @@
-module Page.Detail exposing (Model, Msg, getKey, getSession, init, update, updateSession, view)
+module Page.Detail exposing (Model, Msg, getNav, getSession, init, update, updateSession, view)
 
 import Browser.Navigation as Nav
 import Bulma.Columns exposing (ColumnsModifiers, Display(..), Gap(..), columns)
@@ -10,6 +10,7 @@ import Butterfly.Type exposing (Butterfly, Color, toRegion)
 import Html exposing (Html, a, div, h6, img, p, text)
 import Html.Attributes exposing (class, src, style)
 import Html.Events exposing (onClick)
+import Navigation as Nav exposing (Nav)
 import Route
 import Session exposing (Session)
 import Util exposing (updateWith)
@@ -31,9 +32,9 @@ getSession model =
     model.session
 
 
-getKey : Model -> Nav.Key
-getKey model =
-    model.session.key
+getNav : Model -> Nav Msg
+getNav model =
+    Nav.map GotSessionMsg model.session.nav
 
 
 updateSession : Model -> Session -> Model

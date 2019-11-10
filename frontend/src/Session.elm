@@ -1,15 +1,15 @@
-module Session exposing (Msg(..), Session, getKey, init, update)
+module Session exposing (Msg(..), Session, getNav, init, update)
 
-import Browser.Navigation as Nav
 import Butterfly.Api as Api exposing (getButterflies)
 import Butterfly.Query as Query exposing (Query)
 import Butterfly.Type exposing (Butterfly, Region(..))
 import NavBar
+import Navigation exposing (Nav)
 import Route
 
 
 type alias Session =
-    { key : Nav.Key
+    { nav : Nav Msg
     , navModel : NavBar.Model
     , query : Query
     , butterflies : Result String (List Butterfly)
@@ -47,7 +47,7 @@ update msg session =
                     Query.update Query.init queryMsg
             in
             ( { session | query = updatedQuery }
-            , Nav.pushUrl (getKey session) (Route.routeToString Route.Dictionary)
+            , session.nav.pushUrl (Route.routeToString Route.Dictionary)
             )
 
         GotButterflyResponse apiMsg ->
@@ -68,11 +68,13 @@ update msg session =
             )
 
 
-init : Nav.Key -> NavBar.Model -> ( Session, Cmd Msg )
-init key model =
-    ( Session key model Query.init (Ok []), Cmd.map GotButterflyResponse getButterflies )
+init : Nav Msg -> NavBar.Model -> ( Session, Cmd Msg )
+init nav model =
+    ( Session nav model Query.init (Ok [])
+    , Cmd.map GotButterflyResponse getButterflies
+    )
 
 
-getKey : Session -> Nav.Key
-getKey session =
-    session.key
+getNav : Session -> Nav Msg
+getNav session =
+    session.nav
