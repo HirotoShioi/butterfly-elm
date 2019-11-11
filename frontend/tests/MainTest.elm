@@ -6,6 +6,7 @@ import Generator as Gen
 import Main
 import NavBar
 import Navigation as Nav exposing (Nav)
+import Page.Detail as Detail
 import Page.Dictionary as Dictionary
 import Route exposing (Route)
 import Session
@@ -31,7 +32,6 @@ testMain =
                 initMain
                     |> Tuple.first
                     |> isLoadingState
-                    |> Expect.true "Should be loading state"
         , test "MainClick should disable navbar" <|
             \_ ->
                 initMain
@@ -48,16 +48,40 @@ testMain =
                     |> Main.changeRouteTo (Just route)
                     |> Tuple.first
                     |> isLoadingState
-                    |> Expect.true "Should be loading state"
-        , fuzz Gen.genRoute "changeRouteTo should switch to appopriate model" <|
-            \route ->
-                initMain
-                    |> Tuple.first
-                    |> goHome
-                    |> Main.changeRouteTo (Just route)
+        , fuzz (Fuzz.tuple ( Gen.genRoute, Gen.genMainModel )) "changeRouteTo should switch to appopriate model" <|
+            \( route, model ) ->
+                Main.changeRouteTo (Just route) model
                     |> Tuple.first
                     |> validatePage route
-                    |> Expect.true "Should be in appopriate model"
+        , fuzz (Fuzz.tuple ( Gen.genButterfly, Gen.genMainModel )) "changeRouteTo should transition to detail view" <|
+            \( butterfly, mainModel ) ->
+                let
+                    session =
+                        Main.getSession mainModel
+
+                    updatedSession =
+                        { session
+                            | butterflies = Result.map (\bs -> butterfly :: bs) session.butterflies
+                            , navModel = False
+                        }
+
+                    route =
+                        Just (Route.Detail butterfly.engName)
+
+                    updatedModel =
+                        Main.updateSession mainModel updatedSession
+                            |> Main.changeRouteTo route
+                            |> Tuple.first
+
+                    detailModel =
+                        Detail.init (Main.getSession updatedModel) butterfly |> Tuple.first
+                in
+                case session.butterflies of
+                    Ok _ ->
+                        Expect.equal updatedModel (Main.Detail detailModel)
+
+                    Err _ ->
+                        Expect.equal updatedModel (Main.Error updatedSession)
         , fuzz (Fuzz.tuple ( Gen.genSessionMsg, Gen.genMainModel )) "Should handle GotSessionMsg as expected" <|
             \( sessionMsg, before ) ->
                 Main.update (Main.GotSessionMsg sessionMsg) before
@@ -71,13 +95,13 @@ testMain =
                     |> (\before ->
                             Main.update (Main.GotDictionaryMsg dictionaryMsg) before
                                 |> Tuple.first
-                                |> (\after -> validateDictionaryUpdate dictionaryMsg before after)
+                                |> validateDictionaryUpdate dictionaryMsg before
                        )
         , fuzz (Fuzz.tuple ( Gen.genNavBarMsg, Gen.genMainModel )) "Should handle GotNavBarMsg as expected" <|
             \( navBarMsg, before ) ->
                 Main.update (Main.GotNavBarMsg navBarMsg) before
                     |> Tuple.first
-                    |> (\after -> validateNavBarUpdate navBarMsg before after)
+                    |> validateNavBarUpdate navBarMsg before
         ]
 
 
@@ -128,14 +152,52 @@ validateDictionaryUpdate msg before after =
             Expect.fail "Update failed"
 
 
-isLoadingState : Main.Model -> Bool
+validatePage : Route -> Main.Model -> Expectation
+validatePage route model =
+    let
+        session =
+            Main.getSession model
+
+        updatedSession =
+            { session | navModel = False }
+
+        expectEqual s =
+            Expect.equal s updatedSession
+    in
+    case ( route, model ) of
+        ( Route.Home, Main.Home s ) ->
+            expectEqual s
+
+        ( Route.Reference, Main.Reference s ) ->
+            expectEqual s
+
+        ( Route.Category, Main.Category s ) ->
+            expectEqual s
+
+        ( Route.Description, Main.Description s ) ->
+            expectEqual s
+
+        ( Route.Area, Main.Area s ) ->
+            expectEqual s
+
+        ( Route.Dictionary, Main.Dictionary m ) ->
+            expectEqual m.session
+
+        ( Route.Error, Main.Error s ) ->
+            expectEqual s
+
+        _ ->
+            Expect.fail "No match"
+
+
+isLoadingState : Main.Model -> Expectation
 isLoadingState model =
     case model of
         Main.Loading _ _ ->
-            True
+            Expect.pass
 
         _ ->
-            False
+            Expect.fail "Invalid state"
 
 
 enableNavBar : Main.Model -> Main.Model
@@ -162,31 +224,3 @@ goDictionary someModel =
             Tuple.first <| Dictionary.init (Main.getSession someModel)
     in
     Main.Dictionary dictionaryModel
-
-
-validatePage : Route -> Main.Model -> Bool
-validatePage route model =
-    case ( route, model ) of
-        ( Route.Home, Main.Home _ ) ->
-            True
-
-        ( Route.Reference, Main.Reference _ ) ->
-            True
-
-        ( Route.Category, Main.Category _ ) ->
-            True
-
-        ( Route.Description, Main.Description _ ) ->
-            True
-
-        ( Route.Area, Main.Area _ ) ->
-            True
-
-        ( Route.Dictionary, Main.Dictionary _ ) ->
-            True
-
-        ( Route.Error, Main.Error _ ) ->
-            True
-
-        _ ->
-            False
