@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (Model(..), Msg(..), changeRouteTo, getNav, getSession, init, main, update, updateSession, view)
 
 import Browser
 import Browser.Navigation as Nav
@@ -75,13 +75,13 @@ getNav model =
             mapWith <| S.getNav s
 
         Dictionary m ->
-            Nav.map GotDictionaryMessage <| Dic.getNav m
+            Nav.map GotDictionaryMsg <| Dic.getNav m
 
         Loading s _ ->
             mapWith <| S.getNav s
 
         Detail m ->
-            Nav.map GotDetailMessage <| Detail.getNav m
+            Nav.map GotDetailMsg <| Detail.getNav m
 
 
 getSession : Model -> Session
@@ -152,11 +152,20 @@ updateSession model s =
             Detail (Detail.updateSession m s)
 
 
-init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
+initWithKey : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+initWithKey _ url key =
+    let
+        nav =
+            Nav.initWithKey key
+    in
+    init url nav
+
+
+init : Url.Url -> Nav S.Msg -> ( Model, Cmd Msg )
+init url nav =
     let
         ( initSession, sessionCmd ) =
-            S.init (Nav.initWithKey key) NavBar.init
+            S.init nav NavBar.init
 
         liftedSessionCmd =
             Cmd.map GotSessionMsg sessionCmd
@@ -200,7 +209,7 @@ changeRouteTo maybeRoute model =
                     ( Area session, Cmd.none )
 
                 Just Route.Dictionary ->
-                    updateWith Dictionary GotDictionaryMessage (Dic.init session)
+                    updateWith Dictionary GotDictionaryMsg (Dic.init session)
 
                 Just Route.Error ->
                     ( Error session, Cmd.none )
@@ -222,7 +231,7 @@ changeRouteTo maybeRoute model =
                                     ( NotFound session, Cmd.none )
 
                                 Just butterfly ->
-                                    updateWith Detail GotDetailMessage (Detail.init session butterfly)
+                                    updateWith Detail GotDetailMsg (Detail.init session butterfly)
 
                         Err _ ->
                             ( Error session, Cmd.none )
@@ -235,12 +244,12 @@ changeRouteTo maybeRoute model =
 type Msg
     = UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
-    | GotDictionaryMessage Dic.Msg
-    | GotNavBarMessage NavBar.Msg
+    | GotDictionaryMsg Dic.Msg
+    | GotNavBarMsg NavBar.Msg
     | NoOp
     | MainClicked
     | GotSessionMsg S.Msg
-    | GotDetailMessage Detail.Msg
+    | GotDetailMsg Detail.Msg
     | GotNotFoundMsg NotFound.Msg
 
 
@@ -274,19 +283,19 @@ update msg model =
         ( UrlChanged url, _ ) ->
             changeRouteTo (Route.parseUrl url) model
 
-        ( GotDictionaryMessage submsg, Dictionary submodel ) ->
+        ( GotDictionaryMsg submsg, Dictionary submodel ) ->
             Dic.update submsg submodel
-                |> updateWith Dictionary GotDictionaryMessage
+                |> updateWith Dictionary GotDictionaryMsg
 
-        ( GotDetailMessage submsg, Detail submodel ) ->
+        ( GotDetailMsg submsg, Detail submodel ) ->
             Detail.update submsg submodel
-                |> updateWith Detail GotDetailMessage
+                |> updateWith Detail GotDetailMsg
 
         ( MainClicked, someModel ) ->
             S.update (S.GotNavMessage NavBar.DisableMenu) (getSession someModel)
                 |> updateWith (updateSession someModel) GotSessionMsg
 
-        ( GotNavBarMessage navMsg, someModel ) ->
+        ( GotNavBarMsg navMsg, someModel ) ->
             S.update (S.GotNavMessage navMsg) (getSession someModel)
                 |> updateWith (updateSession someModel) GotSessionMsg
 
@@ -303,8 +312,8 @@ update msg model =
                     in
                     ( someModel, Cmd.batch [ routeCmd, Cmd.map GotSessionMsg cmd ] )
 
-                -- If any other message was being triggered while the model is at Loading
-                -- , ignore it
+                -- If any other message was being triggered while the model is at
+                -- Loading state, ignore it
                 _ ->
                     ( model, Cmd.none )
 
@@ -355,10 +364,10 @@ view model =
         Detail m ->
             Browser.Document
                 m.butterfly.jpName
-                (detailView m.session Page.Detail (Html.map GotDetailMessage <| Detail.view m))
+                (detailView m.session Page.Detail (Html.map GotDetailMsg <| Detail.view m))
 
         Dictionary submodel ->
-            toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMessage (Dic.view submodel)
+            toView (Dic.getSession submodel) Page.Dictionary GotDictionaryMsg (Dic.view submodel)
 
 
 toHeroView : Session -> Page -> Html msg -> (msg -> Msg) -> Browser.Document Msg
@@ -388,7 +397,7 @@ toView session page toMsg content =
 mainView : Session -> Page -> Html Msg -> List (Html Msg)
 mainView session page content =
     [ main_ []
-        [ Html.map GotNavBarMessage <| NavBar.view page session.navModel
+        [ Html.map GotNavBarMsg <| NavBar.view page session.navModel
         , columns myColumnsModifiers
             [ onClick MainClicked ]
             [ content ]
@@ -399,7 +408,7 @@ mainView session page content =
 detailView : Session -> Page -> Html Msg -> List (Html Msg)
 detailView session page content =
     [ main_ []
-        [ Html.map GotNavBarMessage <| NavBar.view page session.navModel
+        [ Html.map GotNavBarMsg <| NavBar.view page session.navModel
         , columns detailColumnsModifiers
             [ onClick MainClicked ]
             [ div [ class "column is-two-thirds" ] [ content ]
@@ -466,7 +475,7 @@ myColumnsModifiers =
 main : Program () Model Msg
 main =
     Browser.application
-        { init = init
+        { init = initWithKey
         , view = view
         , update = update
         , subscriptions = always Sub.none
