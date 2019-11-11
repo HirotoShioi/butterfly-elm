@@ -1,4 +1,4 @@
-module Generator exposing (genDictionaryMsg, genMainModel, genNavBarMsg, genQueryMsg, genRoute, genSession, genSessionMsg)
+module Generator exposing (genDictionaryMsg, genMainModel, genNavBarMsg, genQuery, genQueryMsg, genRoute, genSession, genSessionMsg)
 
 import Butterfly.Api as Api
 import Butterfly.Query as Query exposing (Query)
@@ -52,6 +52,7 @@ genQueryMsg =
         , Fuzz.constant Query.ResetColor
         , Fuzz.map Query.UpdateCategory Fuzz.string
         , Fuzz.map Query.UpdateColor Fuzz.string
+        , Fuzz.map Query.UpdateRegion genRegion
         ]
 
 
@@ -129,8 +130,8 @@ genSession =
         randomButterFlies =
             Fuzz.list genButterfly
     in
-    Fuzz.map2
-        (\isNavOpen butterflies ->
+    Fuzz.map3
+        (\isNavOpen butterflies query ->
             { session
                 | butterflies =
                     if List.isEmpty butterflies then
@@ -139,15 +140,27 @@ genSession =
                     else
                         Ok butterflies
                 , navModel = isNavOpen
+                , query = query
             }
         )
         randomBool
         randomButterFlies
+        genQuery
 
 
 genButterfly : Fuzzer Butterfly
 genButterfly =
     Fuzz.custom generateButterfly Shrink.noShrink
+
+
+genQuery : Fuzzer Query
+genQuery =
+    Fuzz.custom generateQuery Shrink.noShrink
+
+
+genRegion : Fuzzer Region
+genRegion =
+    Fuzz.custom generateRegion Shrink.noShrink
 
 
 generateButterfly : Generator Butterfly
@@ -211,6 +224,11 @@ genKatakana =
     Random.string 10 Random.katakana
 
 
+genHiragana : Generator String
+genHiragana =
+    Random.string 10 Random.hiragana
+
+
 genRegionStr : Generator String
 genRegionStr =
     Random.choose regionList
@@ -220,3 +238,23 @@ genRegionStr =
                     |> Maybe.withDefault OldNorth
                     |> fromRegion
             )
+
+
+generateRegion : Generator Region
+generateRegion =
+    Random.choose regionList
+        |> Random.map Tuple.first
+        |> Random.map (Maybe.withDefault OldNorth)
+
+
+generateQuery : Generator Query
+generateQuery =
+    let
+        toMaybe gen =
+            Random.maybe (Random.oneIn 5) gen
+    in
+    Random.map Query (toMaybe generateRegion)
+        |> Random.andMap (toMaybe genKatakana)
+        |> Random.andMap (toMaybe genHiragana)
+        |> Random.andMap (toMaybe genHexString)
+        |> Random.andMap (Random.constant 70)

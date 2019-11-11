@@ -1,4 +1,4 @@
-module UpdateTest exposing (dictionaryUpdateTest, navBarTest, sessionUpdateTest)
+module UpdateTest exposing (dictionaryUpdateTest, navBarTest, queryUpdateTest, sessionUpdateTest)
 
 import Butterfly.Api as Api
 import Butterfly.Query as Query exposing (Query)
@@ -62,6 +62,24 @@ sessionUpdateTest =
         ]
 
 
+expectedInitSession : Session
+expectedInitSession =
+    let
+        nav =
+            Nav.initWithStub
+
+        navBar =
+            NavBar.init
+
+        query =
+            Query.init
+
+        response =
+            Ok []
+    in
+    Session nav navBar query response
+
+
 validateSession : Session.Msg -> Session -> Expectation
 validateSession msg session =
     let
@@ -73,7 +91,7 @@ validateSession msg session =
             Expect.equal updatedSession.navModel False
 
         Session.FromDictionary queryMsg ->
-            Expect.equal updatedSession.query (Query.update Query.init queryMsg)
+            Expect.equal updatedSession.query (Query.update session.query queryMsg)
 
         Session.FromDetail queryMsg ->
             Expect.equal updatedSession.query (Query.update Query.init queryMsg)
@@ -144,7 +162,7 @@ validateDictionary msg ( before, fromCmd ) =
         Dictionary.RegionClicked regionStr ->
             case toRegion regionStr of
                 Err _ ->
-                    Expect.equal after.session.query.region Nothing
+                    Expect.equal after.session.query.region before.session.query.region
 
                 Ok region ->
                     Expect.equal after.session.query.region (Just region)
@@ -165,22 +183,84 @@ validateDictionary msg ( before, fromCmd ) =
             Expect.true "Not implemented" True
 
 
-expectedInitSession : Session
-expectedInitSession =
+
+--------------------------------------------------------------------------------
+-- Query
+--------------------------------------------------------------------------------
+
+
+queryUpdateTest : Test
+queryUpdateTest =
+    describe "Query"
+        [ fuzz (Fuzz.tuple ( Gen.genQueryMsg, Gen.genQuery )) "Should update Query as expected" <|
+            \( queryMsg, query ) -> validateQueryUpdate queryMsg query
+        , test "Init should generate appopriate Query" <|
+            \_ ->
+                Expect.all
+                    [ \q -> Expect.equal Nothing q.hexColor
+                    , \q -> Expect.equal Nothing q.region
+                    , \q -> Expect.equal Nothing q.category
+                    ]
+                    Query.init
+        ]
+
+
+validateQueryUpdate : Query.Msg -> Query -> Expectation
+validateQueryUpdate msg query =
     let
-        nav =
-            Nav.initWithStub
-
-        navBar =
-            NavBar.init
-
-        query =
-            Query.init
-
-        response =
-            Ok []
+        updatedQuery =
+            Query.update query msg
     in
-    Session nav navBar query response
+    case msg of
+        Query.ResetCategory ->
+            let
+                expected =
+                    { query | category = Nothing }
+            in
+            Expect.equal updatedQuery expected
+
+        Query.ResetColor ->
+            let
+                expected =
+                    { query | hexColor = Nothing }
+            in
+            Expect.equal updatedQuery expected
+
+        Query.ResetRegion ->
+            let
+                expected =
+                    { query | region = Nothing }
+            in
+            Expect.equal updatedQuery expected
+
+        Query.UpdateCategory category ->
+            let
+                expected =
+                    { query | category = Just category }
+            in
+            Expect.equal updatedQuery expected
+
+        Query.UpdateColor hexColor ->
+            let
+                expected =
+                    { query | hexColor = Just hexColor }
+            in
+            Expect.equal updatedQuery expected
+
+        Query.UpdateRegion region ->
+            let
+                expected =
+                    { query | region = Just region }
+            in
+            Expect.equal updatedQuery expected
+
+        Query.ResetAll ->
+            Expect.all
+                [ \q -> Expect.equal q.hexColor Nothing
+                , \q -> Expect.equal q.region Nothing
+                , \q -> Expect.equal q.category Nothing
+                ]
+                updatedQuery
 
 
 initSession : ( Session, Cmd Session.Msg )
