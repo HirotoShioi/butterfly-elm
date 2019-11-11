@@ -6,13 +6,13 @@
   "directories": {
     "test": "tests"
   },
-  "dependencies": {},
   "devDependencies": {
     "create-elm-app": "^4.0.0",
-    "elm-test": "^0.19.1"
+    "elm-test": "^0.19.1",
+    "elm-format": "^0.8.2"
   },
   "scripts": {
-    "test": "elm-test",
+    "test": "elm-format --validate . && elm-test",
     "build": "elm-app build"
   },
   "repository": {

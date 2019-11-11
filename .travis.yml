@@ -1,4 +1,18 @@
-language: elm
-elm:
-  - elm0.19.0
+sudo: false
+
+dist: trusty
+
+language: node_js
+
+node_js:
+  - "13.1.0"
+
 before_install: cd frontend
+
+cache:
+  yarn: true
+  directories:
+    - tests/elm-stuff/build-artifacts
+
+script:
+  - yarn run test
