@@ -81,7 +81,12 @@ validateSession msg session =
             Expect.equal updatedSession.query (Query.update Query.init queryMsg)
 
         Session.GotButterflyResponse (Api.GotButterflies res) ->
-            Expect.equal updatedSession.butterflies (Ok [])
+            case res of
+                Ok butterflies ->
+                    Expect.equal updatedSession.butterflies (Ok butterflies)
+
+                Err _ ->
+                    Expect.true "Not yet implemented" True
 
         Session.GotNavMessage navMsg ->
             Expect.equal updatedSession.navModel
