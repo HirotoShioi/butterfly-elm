@@ -57,7 +57,9 @@ sessionUpdateTest =
             \_ ->
                 initSession
                     |> (\( session, _ ) -> Expect.equal session expectedInitSession)
-        , fuzz (Fuzz.tuple ( Gen.genSessionMsg, Gen.genSession )) "Should properly update its model with update" <|
+        , fuzz (Fuzz.tuple ( Gen.genSessionMsg, Gen.genSession ))
+            "Should properly update its model with update"
+          <|
             \( sessionMsg, session ) -> validateSession sessionMsg session
         ]
 
@@ -118,7 +120,9 @@ validateSession msg session =
 dictionaryUpdateTest : Test
 dictionaryUpdateTest =
     describe "Dictionary"
-        [ fuzz (Fuzz.tuple ( Gen.genDictionaryMsg, Gen.genSession )) "Should handle update as expected" <|
+        [ fuzz (Fuzz.tuple ( Gen.genDictionaryMsg, Gen.genSession ))
+            "Should handle update as expected"
+          <|
             \( dictionaryMsg, session ) ->
                 Dictionary.init session
                     |> validateDictionary dictionaryMsg

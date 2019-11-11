@@ -1,4 +1,4 @@
-module Generator exposing (genDictionaryMsg, genMainModel, genNavBarMsg, genQuery, genQueryMsg, genRoute, genSession, genSessionMsg)
+module Generator exposing (genButterfly, genDictionaryMsg, genMainModel, genNavBarMsg, genQuery, genQueryMsg, genRoute, genSession, genSessionMsg)
 
 import Butterfly.Api as Api
 import Butterfly.Query as Query exposing (Query)
