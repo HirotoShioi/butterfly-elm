@@ -1,6 +1,6 @@
 module NavBar exposing (Model, Msg(..), init, update, view)
 
-import Bulma.Components exposing (navbar, navbarBrand, navbarEnd, navbarItem, navbarItemLink, navbarMenu, navbarModifiers, navbarStart)
+import Bulma.Components as B
 import Html exposing (Html, a, div, img, span, text)
 import Html.Attributes exposing (class, href, src)
 import Html.Events exposing (onClick)
@@ -34,28 +34,28 @@ update msg model =
 
 view : Page -> Model -> Html Msg
 view page isOpen =
-    navbar navbarModifiers
+    B.navbar B.navbarModifiers
         []
-        [ navbarBrand []
+        [ B.navbarBrand []
             (myNavbarBurger isOpen)
-            [ navbarItem False
+            [ B.navbarItem False
                 []
                 [ a [ href "#/" ]
                     [ img [ src "https://package.elm-lang.org/assets/favicon.ico" ] []
                     ]
                 ]
             ]
-        , navbarMenu isOpen
+        , B.navbarMenu isOpen
             []
-            [ navbarStart []
+            [ B.navbarStart []
                 [ navLink page Route.Dictionary <| Page.toTitle Page.Dictionary
                 , navLink page Route.Description <| Page.toTitle Page.Description
                 , navLink page Route.Category <| Page.toTitle Page.Category
                 , navLink page Route.Area <| Page.toTitle Page.Area
                 , navLink page Route.Reference <| Page.toTitle Page.Reference
                 ]
-            , navbarEnd []
-                [ navbarItem True
+            , B.navbarEnd []
+                [ B.navbarItem True
                     []
                     [ div [ class "buttons" ]
                         [ a
@@ -72,7 +72,7 @@ view page isOpen =
 
 navLink : Page -> Route -> String -> Html msg
 navLink page route linkName =
-    navbarItemLink (isActive page route) [ Route.href route ] [ text linkName ]
+    B.navbarItemLink (isActive page route) [ Route.href route ] [ text linkName ]
 
 
 isActive : Page -> Route -> Bool

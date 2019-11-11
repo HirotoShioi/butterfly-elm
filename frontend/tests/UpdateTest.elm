@@ -1,22 +1,31 @@
-module Update exposing (..)
+module UpdateTest exposing (dictionaryUpdateTest, navBarTest, sessionUpdateTest)
 
 import Butterfly.Api as Api
 import Butterfly.Query as Query exposing (Query)
 import Butterfly.Type exposing (toRegion)
 import Expect exposing (Expectation)
 import Fuzz as Fuzz exposing (Fuzzer)
+import Generator as Gen
+import Main
 import NavBar
 import Navigation as Nav exposing (Nav)
 import Page.Dictionary as Dictionary
 import Session exposing (Session)
 import Test exposing (..)
+import Url as Url exposing (Url)
+
+
+
+--------------------------------------------------------------------------------
+-- NavBar
+--------------------------------------------------------------------------------
 
 
 navBarTest : Test
 navBarTest =
     describe "NavBar"
         [ test "Init" <| \_ -> Expect.equal False NavBar.init
-        , fuzz randomNavBarMsg "should properly update" <|
+        , fuzz Gen.genNavBarMsg "should properly update" <|
             \navMsg -> validateNavBar navMsg NavBar.init
         ]
 
@@ -35,6 +44,12 @@ validateNavBar msg model =
             Expect.equal updatedModel False
 
 
+
+--------------------------------------------------------------------------------
+-- Session
+--------------------------------------------------------------------------------
+
+
 sessionUpdateTest : Test
 sessionUpdateTest =
     describe "Session"
@@ -42,7 +57,7 @@ sessionUpdateTest =
             \_ ->
                 initSession
                     |> (\( session, _ ) -> Expect.equal session expectedInitSession)
-        , fuzz randomSessionMsg "Should properly update its model with update" <|
+        , fuzz Gen.genSessionMsg "Should properly update its model with update" <|
             \sessionMsg ->
                 initSession
                     |> (\( session, _ ) -> validateSession sessionMsg session)
@@ -73,10 +88,16 @@ validateSession msg session =
                 (Tuple.first <| NavBar.update navMsg NavBar.init)
 
 
+
+--------------------------------------------------------------------------------
+-- Dictionary
+--------------------------------------------------------------------------------
+
+
 dictionaryUpdateTest : Test
 dictionaryUpdateTest =
     describe "Dictionary"
-        [ fuzz randomDictionaryMsg "Query" <|
+        [ fuzz Gen.genDictionaryMsg "Query" <|
             \dictionaryMsg ->
                 initSession
                     |> Tuple.first
@@ -164,54 +185,3 @@ expectedInitSession =
 initSession : ( Session, Cmd Session.Msg )
 initSession =
     Session.init Nav.initWithStub NavBar.init
-
-
-
---------------------------------------------------------------------------------
--- Generators
---------------------------------------------------------------------------------
-
-
-randomDictionaryMsg : Fuzzer Dictionary.Msg
-randomDictionaryMsg =
-    Fuzz.oneOf
-        [ Fuzz.constant Dictionary.ToggleRegionMenu
-        , Fuzz.map Dictionary.RegionClicked Fuzz.string
-        , Fuzz.constant Dictionary.ToggleCategoryMenu
-        , Fuzz.constant Dictionary.ToggleColorMenu
-        , Fuzz.constant Dictionary.ResetColor
-        , Fuzz.constant Dictionary.ResetCategory
-        , Fuzz.constant Dictionary.ResetRegion
-        , Fuzz.map Dictionary.ColorClicked Fuzz.string
-        , Fuzz.map Dictionary.CategoryClicked Fuzz.string
-        ]
-
-
-randomQueryMsg : Fuzzer Query.Msg
-randomQueryMsg =
-    Fuzz.oneOf
-        [ Fuzz.constant Query.ResetRegion
-        , Fuzz.constant Query.ResetCategory
-        , Fuzz.constant Query.ResetColor
-        , Fuzz.map Query.UpdateCategory Fuzz.string
-        , Fuzz.map Query.UpdateColor Fuzz.string
-        ]
-
-
-randomNavBarMsg : Fuzzer NavBar.Msg
-randomNavBarMsg =
-    Fuzz.oneOf
-        [ Fuzz.constant NavBar.ToggleMenu
-        , Fuzz.constant NavBar.DisableMenu
-        ]
-
-
-randomSessionMsg : Fuzzer Session.Msg
-randomSessionMsg =
-    Fuzz.oneOf
-        [ Fuzz.constant Session.DisableMenu
-        , Fuzz.map Session.FromDictionary randomQueryMsg
-        , Fuzz.map Session.FromDetail randomQueryMsg
-        , Fuzz.map Session.GotButterflyResponse (Fuzz.constant <| Api.GotButterflies <| Ok [])
-        , Fuzz.map Session.GotNavMessage randomNavBarMsg
-        ]
