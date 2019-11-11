@@ -1,4 +1,4 @@
-module Generator exposing (genDictionaryMsg, genMainModel, genNavBarMsg, genQueryMsg, genRoute, genSessionMsg)
+module Generator exposing (genDictionaryMsg, genMainModel, genNavBarMsg, genQueryMsg, genRoute, genSession, genSessionMsg)
 
 import Butterfly.Api as Api
 import Butterfly.Query as Query exposing (Query)
@@ -99,21 +99,18 @@ genRoute =
 genMainModel : Fuzzer Main.Model
 genMainModel =
     let
-        session =
-            Tuple.first <| Session.init Nav.initWithStub NavBar.init
-
-        dictionaryModel =
+        dictionaryModel session =
             Tuple.first <| Dictionary.init session
     in
     Fuzz.oneOf
-        [ Fuzz.constant (Main.Home session)
-        , Fuzz.constant (Main.NotFound session)
-        , Fuzz.constant (Main.Reference session)
-        , Fuzz.constant (Main.Area session)
-        , Fuzz.constant (Main.Category session)
-        , Fuzz.constant (Main.Error session)
-        , Fuzz.constant (Main.Description session)
-        , Fuzz.constant (Main.Dictionary dictionaryModel)
+        [ Fuzz.map Main.Home genSession
+        , Fuzz.map Main.NotFound genSession
+        , Fuzz.map Main.Reference genSession
+        , Fuzz.map Main.Area genSession
+        , Fuzz.map Main.Category genSession
+        , Fuzz.map Main.Error genSession
+        , Fuzz.map Main.Description genSession
+        , Fuzz.map Main.Dictionary (Fuzz.map dictionaryModel genSession)
 
         -- | Loading Session Url.Url -- Generate random url
         -- | Detail Detail.Model -- Init requires butterfly data
@@ -181,7 +178,23 @@ genHexString =
     let
         genHexChar =
             Random.sample
-                [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" ]
+                [ "0"
+                , "1"
+                , "2"
+                , "3"
+                , "4"
+                , "5"
+                , "6"
+                , "7"
+                , "8"
+                , "9"
+                , "a"
+                , "b"
+                , "c"
+                , "d"
+                , "e"
+                , "f"
+                ]
                 |> Random.map (Maybe.withDefault "0")
     in
     Random.list 6 genHexChar

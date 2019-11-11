@@ -57,10 +57,8 @@ sessionUpdateTest =
             \_ ->
                 initSession
                     |> (\( session, _ ) -> Expect.equal session expectedInitSession)
-        , fuzz Gen.genSessionMsg "Should properly update its model with update" <|
-            \sessionMsg ->
-                initSession
-                    |> (\( session, _ ) -> validateSession sessionMsg session)
+        , fuzz (Fuzz.tuple ( Gen.genSessionMsg, Gen.genSession )) "Should properly update its model with update" <|
+            \( sessionMsg, session ) -> validateSession sessionMsg session
         ]
 
 
@@ -90,7 +88,7 @@ validateSession msg session =
 
         Session.GotNavMessage navMsg ->
             Expect.equal updatedSession.navModel
-                (Tuple.first <| NavBar.update navMsg NavBar.init)
+                (Tuple.first <| NavBar.update navMsg session.navModel)
 
 
 
@@ -102,11 +100,9 @@ validateSession msg session =
 dictionaryUpdateTest : Test
 dictionaryUpdateTest =
     describe "Dictionary"
-        [ fuzz Gen.genDictionaryMsg "Query" <|
-            \dictionaryMsg ->
-                initSession
-                    |> Tuple.first
-                    |> Dictionary.init
+        [ fuzz (Fuzz.tuple ( Gen.genDictionaryMsg, Gen.genSession )) "Should handle update as expected" <|
+            \( dictionaryMsg, session ) ->
+                Dictionary.init session
                     |> validateDictionary dictionaryMsg
         ]
 
@@ -115,55 +111,55 @@ validateDictionary :
     Dictionary.Msg
     -> ( Dictionary.Model, Cmd Dictionary.Msg )
     -> Expectation
-validateDictionary msg ( fromModel, fromCmd ) =
+validateDictionary msg ( before, fromCmd ) =
     let
-        ( toModel, cmd ) =
-            Dictionary.update msg fromModel
+        ( after, cmd ) =
+            Dictionary.update msg before
     in
     case msg of
         Dictionary.ToggleRegionMenu ->
             let
                 expectedModel =
-                    { fromModel | isRegionMenuOpen = True }
+                    { before | isRegionMenuOpen = True }
             in
-            Expect.equal expectedModel toModel
+            Expect.equal expectedModel after
 
         Dictionary.ToggleColorMenu ->
             let
                 expectedModel =
-                    { fromModel | isColorMenuOpen = True }
+                    { before | isColorMenuOpen = True }
             in
-            Expect.equal expectedModel toModel
+            Expect.equal expectedModel after
 
         Dictionary.ToggleCategoryMenu ->
             let
                 expectedModel =
-                    { fromModel | isCategoryMenuOpen = True }
+                    { before | isCategoryMenuOpen = True }
             in
-            Expect.equal expectedModel toModel
+            Expect.equal expectedModel after
 
         Dictionary.ColorClicked color ->
-            Expect.equal toModel.session.query.hexColor (Just color)
+            Expect.equal after.session.query.hexColor (Just color)
 
         Dictionary.RegionClicked regionStr ->
             case toRegion regionStr of
                 Err _ ->
-                    Expect.equal toModel.session.query.region Nothing
+                    Expect.equal after.session.query.region Nothing
 
                 Ok region ->
-                    Expect.equal toModel.session.query.region (Just region)
+                    Expect.equal after.session.query.region (Just region)
 
         Dictionary.CategoryClicked category ->
-            Expect.equal toModel.session.query.category (Just category)
+            Expect.equal after.session.query.category (Just category)
 
         Dictionary.ResetCategory ->
-            Expect.equal toModel.session.query.category Nothing
+            Expect.equal after.session.query.category Nothing
 
         Dictionary.ResetColor ->
-            Expect.equal toModel.session.query.hexColor Nothing
+            Expect.equal after.session.query.hexColor Nothing
 
         Dictionary.ResetRegion ->
-            Expect.equal toModel.session.query.region Nothing
+            Expect.equal after.session.query.region Nothing
 
         _ ->
             Expect.true "Not implemented" True
