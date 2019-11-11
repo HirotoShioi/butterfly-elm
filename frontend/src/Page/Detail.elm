@@ -1,4 +1,4 @@
-module Page.Detail exposing (Model, Msg, getNav, getSession, init, update, updateSession, view)
+module Page.Detail exposing (Model, Msg(..), getNav, getSession, init, update, updateSession, view)
 
 import Browser.Navigation as Nav
 import Bulma.Columns exposing (ColumnsModifiers, Display(..), Gap(..), columns)

@@ -1,4 +1,4 @@
-module UpdateTest exposing (dictionaryUpdateTest, navBarTest, queryUpdateTest, sessionUpdateTest)
+module UpdateTest exposing (detailUpdateTest, dictionaryUpdateTest, navBarTest, queryUpdateTest, sessionUpdateTest)
 
 import Butterfly.Api as Api
 import Butterfly.Query as Query exposing (Query)
@@ -9,6 +9,7 @@ import Generator as Gen
 import Main
 import NavBar
 import Navigation as Nav exposing (Nav)
+import Page.Detail as Detail
 import Page.Dictionary as Dictionary
 import Session exposing (Session)
 import Test exposing (..)
@@ -265,6 +266,63 @@ validateQueryUpdate msg query =
                 , \q -> Expect.equal q.category Nothing
                 ]
                 updatedQuery
+
+
+
+--------------------------------------------------------------------------------
+-- Detail
+--------------------------------------------------------------------------------
+
+
+detailUpdateTest : Test
+detailUpdateTest =
+    describe "Detail"
+        [ fuzz (Fuzz.tuple ( Gen.genSession, Gen.genButterfly )) "Should initiate as expected" <|
+            \( session, butterfly ) ->
+                let
+                    detailModel =
+                        Detail.init session butterfly |> Tuple.first
+                in
+                Expect.all
+                    [ \m -> Expect.equal m.session session
+                    , \m -> Expect.equal m.butterfly butterfly
+                    ]
+                    detailModel
+        , fuzz (Fuzz.tuple ( Gen.genDetailMsg, Gen.genDetailModel )) "Should update appopriately" <|
+            \( msg, model ) -> validateDetailUpdate msg model
+        ]
+
+
+validateDetailUpdate : Detail.Msg -> Detail.Model -> Expectation
+validateDetailUpdate msg model =
+    let
+        updatedModel =
+            Detail.update msg model |> Tuple.first
+    in
+    case msg of
+        Detail.ColorClicked hexColor ->
+            Expect.equal updatedModel.session.query.hexColor (Just hexColor)
+
+        Detail.RegionClicked regionStr ->
+            case toRegion regionStr of
+                Err _ ->
+                    Expect.equal updatedModel.session.query.region model.session.query.region
+
+                Ok region ->
+                    Expect.equal updatedModel.session.query.region (Just region)
+
+        Detail.CategoryClicked category ->
+            Expect.equal updatedModel.session.query.category (Just category)
+
+        Detail.GotSessionMsg sessionMsg ->
+            let
+                updatedSession =
+                    Session.update sessionMsg model.session |> Tuple.first
+
+                expectedModel =
+                    { model | session = updatedSession }
+            in
+            Expect.equal updatedModel expectedModel
 
 
 initSession : ( Session, Cmd Session.Msg )

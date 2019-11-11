@@ -1,4 +1,16 @@
-module Generator exposing (genButterfly, genDictionaryMsg, genMainModel, genNavBarMsg, genQuery, genQueryMsg, genRoute, genSession, genSessionMsg)
+module Generator exposing
+    ( genButterfly
+    , genDetailModel
+    , genDetailMsg
+    , genDictionaryMsg
+    , genMainModel
+    , genNavBarMsg
+    , genQuery
+    , genQueryMsg
+    , genRoute
+    , genSession
+    , genSessionMsg
+    )
 
 import Butterfly.Api as Api
 import Butterfly.Query as Query exposing (Query)
@@ -8,6 +20,7 @@ import Fuzz as Fuzz exposing (Fuzzer)
 import Main
 import NavBar
 import Navigation as Nav exposing (Nav)
+import Page.Detail as Detail
 import Page.Dictionary as Dictionary
 import Random exposing (Generator)
 import Random.Char as Random
@@ -25,7 +38,7 @@ import Url as Url exposing (Url)
 
 
 --------------------------------------------------------------------------------
--- Generators
+-- Fuzzer
 --------------------------------------------------------------------------------
 
 
@@ -38,7 +51,8 @@ genDictionaryMsg =
         , Fuzz.constant Dictionary.ResetColor
         , Fuzz.constant Dictionary.ResetCategory
         , Fuzz.constant Dictionary.ResetRegion
-        , Fuzz.map Dictionary.RegionClicked Fuzz.string
+        , Fuzz.map Dictionary.RegionClicked
+            (Fuzz.oneOf [ genRegionStr, Fuzz.string ])
         , Fuzz.map Dictionary.ColorClicked Fuzz.string
         , Fuzz.map Dictionary.CategoryClicked Fuzz.string
         ]
@@ -101,7 +115,7 @@ genMainModel : Fuzzer Main.Model
 genMainModel =
     let
         dictionaryModel session =
-            Tuple.first <| Dictionary.init session
+            Dictionary.init session |> Tuple.first
     in
     Fuzz.oneOf
         [ Fuzz.map Main.Home genSession
@@ -123,12 +137,6 @@ genSession =
     let
         session =
             Session.init Nav.initWithStub NavBar.init |> Tuple.first
-
-        randomBool =
-            Fuzz.bool
-
-        randomButterFlies =
-            Fuzz.list genButterfly
     in
     Fuzz.map3
         (\isNavOpen butterflies query ->
@@ -143,9 +151,28 @@ genSession =
                 , query = query
             }
         )
-        randomBool
-        randomButterFlies
+        Fuzz.bool
+        (Fuzz.list genButterfly)
         genQuery
+
+
+genDetailModel : Fuzzer Detail.Model
+genDetailModel =
+    Fuzz.map2
+        Detail.Model
+        genSession
+        genButterfly
+
+
+genDetailMsg : Fuzzer Detail.Msg
+genDetailMsg =
+    Fuzz.oneOf
+        [ Fuzz.map Detail.ColorClicked genHexString
+        , Fuzz.map Detail.RegionClicked
+            (Fuzz.oneOf [ genRegionStr, Fuzz.string ])
+        , Fuzz.map Detail.CategoryClicked Fuzz.string
+        , Fuzz.map Detail.GotSessionMsg genSessionMsg
+        ]
 
 
 genButterfly : Fuzzer Butterfly
@@ -163,9 +190,25 @@ genRegion =
     Fuzz.custom generateRegion Shrink.noShrink
 
 
+genRegionStr : Fuzzer String
+genRegionStr =
+    Fuzz.custom generateRegionStr Shrink.noShrink
+
+
+genHexString : Fuzzer String
+genHexString =
+    Fuzz.custom generateHexString Shrink.noShrink
+
+
+
+--------------------------------------------------------------------------------
+-- Generator
+--------------------------------------------------------------------------------
+
+
 generateButterfly : Generator Butterfly
 generateButterfly =
-    Random.map Butterfly genRegionStr
+    Random.map Butterfly generateRegionStr
         |> Random.andMap genKatakana
         |> Random.andMap genString
         |> Random.andMap genString
@@ -183,11 +226,11 @@ genColor : Generator Color
 genColor =
     Random.map Color (Random.float 0 1)
         |> Random.andMap (Random.float 0 1)
-        |> Random.andMap genHexString
+        |> Random.andMap generateHexString
 
 
-genHexString : Generator String
-genHexString =
+generateHexString : Generator String
+generateHexString =
     let
         genHexChar =
             Random.sample
@@ -229,8 +272,8 @@ genHiragana =
     Random.string 10 Random.hiragana
 
 
-genRegionStr : Generator String
-genRegionStr =
+generateRegionStr : Generator String
+generateRegionStr =
     Random.choose regionList
         |> Random.map
             (\pair ->
@@ -256,5 +299,5 @@ generateQuery =
     Random.map Query (toMaybe generateRegion)
         |> Random.andMap (toMaybe genKatakana)
         |> Random.andMap (toMaybe genHiragana)
-        |> Random.andMap (toMaybe genHexString)
+        |> Random.andMap (toMaybe generateHexString)
         |> Random.andMap (Random.constant 70)
