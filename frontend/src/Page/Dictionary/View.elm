@@ -67,11 +67,12 @@ emptyView =
     div [] [ text "該当する蝶はみつかりませでした。" ]
 
 
-butterflyImage : String -> Html msg
-butterflyImage img_src =
-    B.image B.SixteenByNine
+butterflyImage : Maybe String -> Html msg
+butterflyImage mImgSource =
+    let imgPath = Maybe.withDefault "Todo" mImgSource 
+    in B.image B.SixteenByNine
         []
-        [ img [ src <| String.concat [ "http://biokite.com/worldbutterfly/", img_src ] ] []
+        [ img [ src imgPath ] []
         ]
 
 
@@ -101,11 +102,13 @@ showButterflies : Butterfly -> Html msg
 showButterflies butterfly =
     a [ href (mkLink butterfly.engName), class "column is-one-third-tablet is-one-fifth-desktop" ]
         [ B.card [ class "butterfly-card" ]
-            [ B.cardImage [] [ butterflyImage butterfly.imgSrc ]
+            [ B.cardImage [] [ butterflyImage butterfly.imgPath ]
             , B.cardContent [ textCentered, textSize Small ]
                 [ div []
                     [ text butterfly.jpName
-                    , div [ class "content", textColor Grey ] [ text butterfly.engName ]
+                    , div [ class "content", textColor Grey ]
+                        [ text butterfly.engName
+                        ]
                     ]
                 ]
             ]

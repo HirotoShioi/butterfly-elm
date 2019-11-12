@@ -13,6 +13,7 @@ type alias Butterfly =
     { region : String
     , category : String
     , imgSrc : String
+    , imgPath : Maybe String
     , pdfSrc : String
     , jpName : String
     , engName : String
@@ -32,12 +33,35 @@ type alias Color =
     }
 
 
+
+--        "img_path": "./assets/old_north/images/autokurato-ru.jpg",
+-- "https://raw.githubusercontent.com/HirotoShioi/butterfly-elm/master/assets/"
+
+
+toImgUrlPath : Maybe String -> Maybe String
+toImgUrlPath mImgSrc =
+    Maybe.map
+        (\path ->
+            String.split "/" path
+                |> List.drop 1
+                |> String.join "/"
+                |> (\imgPath ->
+                        String.concat
+                            [ "https://raw.githubusercontent.com/HirotoShioi/butterfly-elm/master/"
+                            , imgPath
+                            ]
+                   )
+        )
+        mImgSrc
+
+
 butterflyDecoder : Decoder Butterfly
 butterflyDecoder =
     Decode.succeed Butterfly
         |> required "region" string
         |> required "category" string
         |> required "img_src" string
+        |> required "img_path" (nullable string |> Decode.map toImgUrlPath)
         |> required "pdf_src" string
         |> required "jp_name" string
         |> required "eng_name" string

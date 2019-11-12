@@ -81,7 +81,7 @@ view model =
         [ columns myColumnsModifiers
             []
             [ div [ class "column is-half is-full-tablet" ]
-                [ butterflyImage model.butterfly.imgSrc
+                [ butterflyImage model.butterfly.imgPath
                 , colorBar model.butterfly.dominantColors ColorClicked
                 ]
             , div [ class "column is-half is-full-tablet" ]
@@ -108,11 +108,12 @@ myColumnsModifiers =
     }
 
 
-butterflyImage : String -> Html msg
-butterflyImage img_src =
-    image SixteenByNine
+butterflyImage : Maybe String -> Html msg
+butterflyImage mImgSrc =
+    let imgPath = Maybe.withDefault "Todo" mImgSrc
+    in image SixteenByNine
         [ class "detail-image" ]
-        [ img [ src <| String.concat [ "http://biokite.com/worldbutterfly/", img_src ] ] []
+        [ img [ src <| imgPath ] []
         ]
 
 
