@@ -211,6 +211,7 @@ genButterfly =
     Random.map Butterfly genRegionStr
         |> Random.andMap genKatakana
         |> Random.andMap genString
+        |> Random.andMap (Random.maybe (Random.oneIn 5) genString)
         |> Random.andMap genString
         |> Random.andMap genKatakana
         |> Random.andMap genString

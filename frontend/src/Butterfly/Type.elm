@@ -33,11 +33,6 @@ type alias Color =
     }
 
 
-
---        "img_path": "./assets/old_north/images/autokurato-ru.jpg",
--- "https://raw.githubusercontent.com/HirotoShioi/butterfly-elm/master/assets/"
-
-
 toImgUrlPath : Maybe String -> Maybe String
 toImgUrlPath mImgSrc =
     Maybe.map

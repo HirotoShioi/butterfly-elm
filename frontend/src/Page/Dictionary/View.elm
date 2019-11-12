@@ -69,8 +69,11 @@ emptyView =
 
 butterflyImage : Maybe String -> Html msg
 butterflyImage mImgSource =
-    let imgPath = Maybe.withDefault "Todo" mImgSource 
-    in B.image B.SixteenByNine
+    let
+        imgPath =
+            Maybe.withDefault "Todo" mImgSource
+    in
+    B.image B.SixteenByNine
         []
         [ img [ src imgPath ] []
         ]

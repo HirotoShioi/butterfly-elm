@@ -110,8 +110,11 @@ myColumnsModifiers =
 
 butterflyImage : Maybe String -> Html msg
 butterflyImage mImgSrc =
-    let imgPath = Maybe.withDefault "Todo" mImgSrc
-    in image SixteenByNine
+    let
+        imgPath =
+            Maybe.withDefault "Todo" mImgSrc
+    in
+    image SixteenByNine
         [ class "detail-image" ]
         [ img [ src <| imgPath ] []
         ]
