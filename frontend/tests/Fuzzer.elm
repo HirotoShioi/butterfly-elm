@@ -1,15 +1,15 @@
-module Generator exposing
-    ( genButterfly
-    , genDetailModel
-    , genDetailMsg
-    , genDictionaryMsg
-    , genMainModel
-    , genNavBarMsg
-    , genQuery
-    , genQueryMsg
-    , genRoute
-    , genSession
-    , genSessionMsg
+module Fuzzer exposing
+    ( fuzzButterfly
+    , fuzzDetailModel
+    , fuzzDetailMsg
+    , fuzzDictionaryMsg
+    , fuzzMainModel
+    , fuzzNavBarMsg
+    , fuzzQuery
+    , fuzzQueryMsg
+    , fuzzRoute
+    , fuzzSession
+    , fuzzSessionMsg
     )
 
 import Butterfly.Api as Api
@@ -42,8 +42,8 @@ import Url as Url exposing (Url)
 --------------------------------------------------------------------------------
 
 
-genDictionaryMsg : Fuzzer Dictionary.Msg
-genDictionaryMsg =
+fuzzDictionaryMsg : Fuzzer Dictionary.Msg
+fuzzDictionaryMsg =
     Fuzz.oneOf
         [ Fuzz.constant Dictionary.ToggleRegionMenu
         , Fuzz.constant Dictionary.ToggleCategoryMenu
@@ -52,52 +52,52 @@ genDictionaryMsg =
         , Fuzz.constant Dictionary.ResetCategory
         , Fuzz.constant Dictionary.ResetRegion
         , Fuzz.map Dictionary.RegionClicked
-            (Fuzz.oneOf [ genRegionStr, Fuzz.string ])
+            (Fuzz.oneOf [ fuzzRegionStr, Fuzz.string ])
         , Fuzz.map Dictionary.ColorClicked Fuzz.string
         , Fuzz.map Dictionary.CategoryClicked Fuzz.string
         ]
 
 
-genQueryMsg : Fuzzer Query.Msg
-genQueryMsg =
+fuzzQueryMsg : Fuzzer Query.Msg
+fuzzQueryMsg =
     Fuzz.oneOf
         [ Fuzz.constant Query.ResetRegion
         , Fuzz.constant Query.ResetCategory
         , Fuzz.constant Query.ResetColor
         , Fuzz.map Query.UpdateCategory Fuzz.string
         , Fuzz.map Query.UpdateColor Fuzz.string
-        , Fuzz.map Query.UpdateRegion genRegion
+        , Fuzz.map Query.UpdateRegion fuzzRegion
         ]
 
 
-genNavBarMsg : Fuzzer NavBar.Msg
-genNavBarMsg =
+fuzzNavBarMsg : Fuzzer NavBar.Msg
+fuzzNavBarMsg =
     Fuzz.oneOf
         [ Fuzz.constant NavBar.ToggleMenu
         , Fuzz.constant NavBar.DisableMenu
         ]
 
 
-genSessionMsg : Fuzzer Session.Msg
-genSessionMsg =
+fuzzSessionMsg : Fuzzer Session.Msg
+fuzzSessionMsg =
     Fuzz.oneOf
         [ Fuzz.constant Session.DisableMenu
-        , Fuzz.map Session.FromDictionary genQueryMsg
-        , Fuzz.map Session.FromDetail genQueryMsg
+        , Fuzz.map Session.FromDictionary fuzzQueryMsg
+        , Fuzz.map Session.FromDetail fuzzQueryMsg
         , Fuzz.map Session.GotButterflyResponse
-            (Fuzz.list genButterfly
+            (Fuzz.list fuzzButterfly
                 |> Fuzz.map
                     (\bs ->
                         Ok bs
                             |> Api.GotButterflies
                     )
             )
-        , Fuzz.map Session.GotNavMessage genNavBarMsg
+        , Fuzz.map Session.GotNavMessage fuzzNavBarMsg
         ]
 
 
-genRoute : Fuzzer Route
-genRoute =
+fuzzRoute : Fuzzer Route
+fuzzRoute =
     Fuzz.oneOf
         [ Fuzz.constant Route.Home
         , Fuzz.constant Route.Reference
@@ -111,29 +111,29 @@ genRoute =
         ]
 
 
-genMainModel : Fuzzer Main.Model
-genMainModel =
+fuzzMainModel : Fuzzer Main.Model
+fuzzMainModel =
     let
         dictionaryModel session =
             Dictionary.init session |> Tuple.first
     in
     Fuzz.oneOf
-        [ Fuzz.map Main.Home genSession
-        , Fuzz.map Main.NotFound genSession
-        , Fuzz.map Main.Reference genSession
-        , Fuzz.map Main.Area genSession
-        , Fuzz.map Main.Category genSession
-        , Fuzz.map Main.Error genSession
-        , Fuzz.map Main.Description genSession
-        , Fuzz.map Main.Dictionary (Fuzz.map dictionaryModel genSession)
+        [ Fuzz.map Main.Home fuzzSession
+        , Fuzz.map Main.NotFound fuzzSession
+        , Fuzz.map Main.Reference fuzzSession
+        , Fuzz.map Main.Area fuzzSession
+        , Fuzz.map Main.Category fuzzSession
+        , Fuzz.map Main.Error fuzzSession
+        , Fuzz.map Main.Description fuzzSession
+        , Fuzz.map Main.Dictionary (Fuzz.map dictionaryModel fuzzSession)
 
         -- | Loading Session Url.Url -- Generate random url
         -- | Detail Detail.Model -- Init requires butterfly data
         ]
 
 
-genSession : Fuzzer Session
-genSession =
+fuzzSession : Fuzzer Session
+fuzzSession =
     let
         session =
             Session.init Nav.initWithStub NavBar.init |> Tuple.first
@@ -152,52 +152,52 @@ genSession =
             }
         )
         Fuzz.bool
-        (Fuzz.list genButterfly)
-        genQuery
+        (Fuzz.list fuzzButterfly)
+        fuzzQuery
 
 
-genDetailModel : Fuzzer Detail.Model
-genDetailModel =
+fuzzDetailModel : Fuzzer Detail.Model
+fuzzDetailModel =
     Fuzz.map2
         Detail.Model
-        genSession
-        genButterfly
+        fuzzSession
+        fuzzButterfly
 
 
-genDetailMsg : Fuzzer Detail.Msg
-genDetailMsg =
+fuzzDetailMsg : Fuzzer Detail.Msg
+fuzzDetailMsg =
     Fuzz.oneOf
-        [ Fuzz.map Detail.ColorClicked genHexString
+        [ Fuzz.map Detail.ColorClicked fuzzHexString
         , Fuzz.map Detail.RegionClicked
-            (Fuzz.oneOf [ genRegionStr, Fuzz.string ])
+            (Fuzz.oneOf [ fuzzRegionStr, Fuzz.string ])
         , Fuzz.map Detail.CategoryClicked Fuzz.string
-        , Fuzz.map Detail.GotSessionMsg genSessionMsg
+        , Fuzz.map Detail.GotSessionMsg fuzzSessionMsg
         ]
 
 
-genButterfly : Fuzzer Butterfly
-genButterfly =
-    Fuzz.custom generateButterfly Shrink.noShrink
+fuzzButterfly : Fuzzer Butterfly
+fuzzButterfly =
+    Fuzz.custom genButterfly Shrink.noShrink
 
 
-genQuery : Fuzzer Query
-genQuery =
-    Fuzz.custom generateQuery Shrink.noShrink
+fuzzQuery : Fuzzer Query
+fuzzQuery =
+    Fuzz.custom genQuery Shrink.noShrink
 
 
-genRegion : Fuzzer Region
-genRegion =
-    Fuzz.custom generateRegion Shrink.noShrink
+fuzzRegion : Fuzzer Region
+fuzzRegion =
+    Fuzz.custom genRegion Shrink.noShrink
 
 
-genRegionStr : Fuzzer String
-genRegionStr =
-    Fuzz.custom generateRegionStr Shrink.noShrink
+fuzzRegionStr : Fuzzer String
+fuzzRegionStr =
+    Fuzz.custom genRegionStr Shrink.noShrink
 
 
-genHexString : Fuzzer String
-genHexString =
-    Fuzz.custom generateHexString Shrink.noShrink
+fuzzHexString : Fuzzer String
+fuzzHexString =
+    Fuzz.custom genHexString Shrink.noShrink
 
 
 
@@ -206,9 +206,9 @@ genHexString =
 --------------------------------------------------------------------------------
 
 
-generateButterfly : Generator Butterfly
-generateButterfly =
-    Random.map Butterfly generateRegionStr
+genButterfly : Generator Butterfly
+genButterfly =
+    Random.map Butterfly genRegionStr
         |> Random.andMap genKatakana
         |> Random.andMap genString
         |> Random.andMap genString
@@ -226,11 +226,11 @@ genColor : Generator Color
 genColor =
     Random.map Color (Random.float 0 1)
         |> Random.andMap (Random.float 0 1)
-        |> Random.andMap generateHexString
+        |> Random.andMap genHexString
 
 
-generateHexString : Generator String
-generateHexString =
+genHexString : Generator String
+genHexString =
     let
         genHexChar =
             Random.sample
@@ -272,8 +272,8 @@ genHiragana =
     Random.string 10 Random.hiragana
 
 
-generateRegionStr : Generator String
-generateRegionStr =
+genRegionStr : Generator String
+genRegionStr =
     Random.choose regionList
         |> Random.map
             (\pair ->
@@ -283,21 +283,21 @@ generateRegionStr =
             )
 
 
-generateRegion : Generator Region
-generateRegion =
+genRegion : Generator Region
+genRegion =
     Random.choose regionList
         |> Random.map Tuple.first
         |> Random.map (Maybe.withDefault OldNorth)
 
 
-generateQuery : Generator Query
-generateQuery =
+genQuery : Generator Query
+genQuery =
     let
         toMaybe gen =
             Random.maybe (Random.oneIn 5) gen
     in
-    Random.map Query (toMaybe generateRegion)
+    Random.map Query (toMaybe genRegion)
         |> Random.andMap (toMaybe genKatakana)
         |> Random.andMap (toMaybe genHiragana)
-        |> Random.andMap (toMaybe generateHexString)
+        |> Random.andMap (toMaybe genHexString)
         |> Random.andMap (Random.constant 70)

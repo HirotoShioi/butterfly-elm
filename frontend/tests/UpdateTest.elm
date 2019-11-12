@@ -5,7 +5,7 @@ import Butterfly.Query as Query exposing (Query)
 import Butterfly.Type exposing (toRegion)
 import Expect exposing (Expectation)
 import Fuzz as Fuzz exposing (Fuzzer)
-import Generator as Gen
+import Fuzzer as Fuzz
 import Main
 import NavBar
 import Navigation as Nav exposing (Nav)
@@ -26,7 +26,7 @@ navBarTest : Test
 navBarTest =
     describe "NavBar"
         [ test "Init" <| \_ -> Expect.equal False NavBar.init
-        , fuzz Gen.genNavBarMsg "should properly update" <|
+        , fuzz Fuzz.fuzzNavBarMsg "should properly update" <|
             \navMsg -> validateNavBar navMsg NavBar.init
         ]
 
@@ -58,7 +58,7 @@ sessionUpdateTest =
             \_ ->
                 initSession
                     |> (\( session, _ ) -> Expect.equal session expectedInitSession)
-        , fuzz (Fuzz.tuple ( Gen.genSessionMsg, Gen.genSession ))
+        , fuzz (Fuzz.tuple ( Fuzz.fuzzSessionMsg, Fuzz.fuzzSession ))
             "Should properly update its model with update"
           <|
             \( sessionMsg, session ) -> validateSession sessionMsg session
@@ -121,7 +121,7 @@ validateSession msg session =
 dictionaryUpdateTest : Test
 dictionaryUpdateTest =
     describe "Dictionary"
-        [ fuzz (Fuzz.tuple ( Gen.genDictionaryMsg, Gen.genSession ))
+        [ fuzz (Fuzz.tuple ( Fuzz.fuzzDictionaryMsg, Fuzz.fuzzSession ))
             "Should handle update as expected"
           <|
             \( dictionaryMsg, session ) ->
@@ -197,7 +197,7 @@ validateDictionary msg ( before, fromCmd ) =
 queryUpdateTest : Test
 queryUpdateTest =
     describe "Query"
-        [ fuzz (Fuzz.tuple ( Gen.genQueryMsg, Gen.genQuery )) "Should update Query as expected" <|
+        [ fuzz (Fuzz.tuple ( Fuzz.fuzzQueryMsg, Fuzz.fuzzQuery )) "Should update Query as expected" <|
             \( queryMsg, query ) -> validateQueryUpdate queryMsg query
         , test "Init should generate appopriate Query" <|
             \_ ->
@@ -277,7 +277,7 @@ validateQueryUpdate msg query =
 detailUpdateTest : Test
 detailUpdateTest =
     describe "Detail"
-        [ fuzz (Fuzz.tuple ( Gen.genSession, Gen.genButterfly )) "Should initiate as expected" <|
+        [ fuzz (Fuzz.tuple ( Fuzz.fuzzSession, Fuzz.fuzzButterfly )) "Should initiate as expected" <|
             \( session, butterfly ) ->
                 let
                     detailModel =
@@ -288,7 +288,7 @@ detailUpdateTest =
                     , \m -> Expect.equal m.butterfly butterfly
                     ]
                     detailModel
-        , fuzz (Fuzz.tuple ( Gen.genDetailMsg, Gen.genDetailModel )) "Should update appopriately" <|
+        , fuzz (Fuzz.tuple ( Fuzz.fuzzDetailMsg, Fuzz.fuzzDetailModel )) "Should update appopriately" <|
             \( msg, model ) -> validateDetailUpdate msg model
         ]
 

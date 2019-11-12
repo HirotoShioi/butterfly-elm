@@ -2,7 +2,7 @@ module MainTest exposing (testMain)
 
 import Expect exposing (Expectation)
 import Fuzz as Fuzz exposing (Fuzzer)
-import Generator as Gen
+import Fuzzer as Fuzz
 import Main
 import NavBar
 import Navigation as Nav exposing (Nav)
@@ -41,19 +41,19 @@ testMain =
                     |> Tuple.first
                     |> Main.getSession
                     |> (\session -> Expect.equal False session.navModel)
-        , fuzz Gen.genRoute "changeRouteTo should not change model if given model is in Loading" <|
+        , fuzz Fuzz.fuzzRoute "changeRouteTo should not change model if given model is in Loading" <|
             \route ->
                 initMain
                     |> Tuple.first
                     |> Main.changeRouteTo (Just route)
                     |> Tuple.first
                     |> isLoadingState
-        , fuzz (Fuzz.tuple ( Gen.genRoute, Gen.genMainModel )) "changeRouteTo should switch to appopriate model" <|
+        , fuzz (Fuzz.tuple ( Fuzz.fuzzRoute, Fuzz.fuzzMainModel )) "changeRouteTo should switch to appopriate model" <|
             \( route, model ) ->
                 Main.changeRouteTo (Just route) model
                     |> Tuple.first
                     |> validatePage route
-        , fuzz (Fuzz.tuple ( Gen.genButterfly, Gen.genMainModel )) "changeRouteTo should transition to detail view" <|
+        , fuzz (Fuzz.tuple ( Fuzz.fuzzButterfly, Fuzz.fuzzMainModel )) "changeRouteTo should transition to detail view" <|
             \( butterfly, mainModel ) ->
                 let
                     session =
@@ -82,12 +82,12 @@ testMain =
 
                     Err _ ->
                         Expect.equal updatedModel (Main.Error updatedSession)
-        , fuzz (Fuzz.tuple ( Gen.genSessionMsg, Gen.genMainModel )) "Should handle GotSessionMsg as expected" <|
+        , fuzz (Fuzz.tuple ( Fuzz.fuzzSessionMsg, Fuzz.fuzzMainModel )) "Should handle GotSessionMsg as expected" <|
             \( sessionMsg, before ) ->
                 Main.update (Main.GotSessionMsg sessionMsg) before
                     |> Tuple.first
                     |> (\after -> validateSessionUpdate sessionMsg before after)
-        , fuzz Gen.genDictionaryMsg "Should handle GotDictionaryMsg as expected" <|
+        , fuzz Fuzz.fuzzDictionaryMsg "Should handle GotDictionaryMsg as expected" <|
             \dictionaryMsg ->
                 initMain
                     |> Tuple.first
@@ -97,7 +97,7 @@ testMain =
                                 |> Tuple.first
                                 |> validateDictionaryUpdate dictionaryMsg before
                        )
-        , fuzz (Fuzz.tuple ( Gen.genNavBarMsg, Gen.genMainModel )) "Should handle GotNavBarMsg as expected" <|
+        , fuzz (Fuzz.tuple ( Fuzz.fuzzNavBarMsg, Fuzz.fuzzMainModel )) "Should handle GotNavBarMsg as expected" <|
             \( navBarMsg, before ) ->
                 Main.update (Main.GotNavBarMsg navBarMsg) before
                     |> Tuple.first
