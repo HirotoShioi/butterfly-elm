@@ -1,7 +1,3 @@
-extractor/target
-**/*.rs.bk
-extractor/assets/
-extractor/secrets/
 *.key
 
 # Distribution
