@@ -33,30 +33,13 @@ type alias Color =
     }
 
 
-toImgUrlPath : Maybe String -> Maybe String
-toImgUrlPath mImgSrc =
-    Maybe.map
-        (\path ->
-            String.split "/" path
-                |> List.drop 1
-                |> String.join "/"
-                |> (\imgPath ->
-                        String.concat
-                            [ "https://raw.githubusercontent.com/HirotoShioi/butterfly-elm/master/"
-                            , imgPath
-                            ]
-                   )
-        )
-        mImgSrc
-
-
 butterflyDecoder : Decoder Butterfly
 butterflyDecoder =
     Decode.succeed Butterfly
         |> required "region" string
         |> required "category" string
         |> required "img_src" string
-        |> required "img_path" (nullable string |> Decode.map toImgUrlPath)
+        |> required "img_path" (nullable string)
         |> required "pdf_src" string
         |> required "jp_name" string
         |> required "eng_name" string
