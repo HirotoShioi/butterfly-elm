@@ -121,20 +121,18 @@ validateSession msg session =
 dictionaryUpdateTest : Test
 dictionaryUpdateTest =
     describe "Dictionary"
-        [ fuzz (Fuzz.tuple ( Fuzz.fuzzDictionaryMsg, Fuzz.fuzzSession ))
+        [ fuzz (Fuzz.tuple ( Fuzz.fuzzDictionaryMsg, Fuzz.fuzzDictionaryModel ))
             "Should handle update as expected"
           <|
-            \( dictionaryMsg, session ) ->
-                Dictionary.init session
-                    |> validateDictionary dictionaryMsg
+            \( dictionaryMsg, model ) -> validateDictionary dictionaryMsg model
         ]
 
 
 validateDictionary :
     Dictionary.Msg
-    -> ( Dictionary.Model, Cmd Dictionary.Msg )
+    -> Dictionary.Model
     -> Expectation
-validateDictionary msg ( before, fromCmd ) =
+validateDictionary msg before =
     let
         ( after, cmd ) =
             Dictionary.update msg before
@@ -143,21 +141,33 @@ validateDictionary msg ( before, fromCmd ) =
         Dictionary.ToggleRegionMenu ->
             let
                 expectedModel =
-                    { before | isRegionMenuOpen = True }
+                    { before
+                        | isRegionMenuOpen = not before.isRegionMenuOpen
+                        , isCategoryMenuOpen = False
+                        , isColorMenuOpen = False
+                    }
             in
             Expect.equal expectedModel after
 
         Dictionary.ToggleColorMenu ->
             let
                 expectedModel =
-                    { before | isColorMenuOpen = True }
+                    { before
+                        | isColorMenuOpen = not before.isColorMenuOpen
+                        , isRegionMenuOpen = False
+                        , isCategoryMenuOpen = False
+                    }
             in
             Expect.equal expectedModel after
 
         Dictionary.ToggleCategoryMenu ->
             let
                 expectedModel =
-                    { before | isCategoryMenuOpen = True }
+                    { before
+                        | isCategoryMenuOpen = not before.isCategoryMenuOpen
+                        , isColorMenuOpen = False
+                        , isRegionMenuOpen = False
+                    }
             in
             Expect.equal expectedModel after
 
@@ -183,6 +193,13 @@ validateDictionary msg ( before, fromCmd ) =
 
         Dictionary.ResetRegion ->
             Expect.equal after.session.query.region Nothing
+
+        Dictionary.LoadButterflies ->
+            let
+                updatedBefore =
+                    { before | maxShowCount = before.maxShowCount + Dictionary.showCount }
+            in
+            Expect.equal after updatedBefore
 
         _ ->
             Expect.true "Not implemented" True

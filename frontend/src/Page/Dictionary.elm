@@ -1,4 +1,4 @@
-module Page.Dictionary exposing (Model, Msg(..), getNav, getSession, init, update, updateSession, view)
+module Page.Dictionary exposing (Model, Msg(..), getNav, getSession, init, showCount, update, updateSession, view)
 
 import Browser.Navigation as Nav
 import Bulma.Components as Components

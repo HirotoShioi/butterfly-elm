@@ -2,6 +2,7 @@ module Fuzzer exposing
     ( fuzzButterfly
     , fuzzDetailModel
     , fuzzDetailMsg
+    , fuzzDictionaryModel
     , fuzzDictionaryMsg
     , fuzzMainModel
     , fuzzNavBarMsg
@@ -51,11 +52,25 @@ fuzzDictionaryMsg =
         , Fuzz.constant Dictionary.ResetColor
         , Fuzz.constant Dictionary.ResetCategory
         , Fuzz.constant Dictionary.ResetRegion
+        , Fuzz.constant Dictionary.LoadButterflies
         , Fuzz.map Dictionary.RegionClicked
             (Fuzz.oneOf [ fuzzRegionStr, Fuzz.string ])
         , Fuzz.map Dictionary.ColorClicked Fuzz.string
         , Fuzz.map Dictionary.CategoryClicked Fuzz.string
         ]
+
+
+fuzzDictionaryModel : Fuzzer Dictionary.Model
+fuzzDictionaryModel =
+    Fuzz.map5
+        Dictionary.Model
+        fuzzSession
+        Fuzz.bool
+        Fuzz.bool
+        Fuzz.bool
+        (Fuzz.oneOf
+            [ Fuzz.constant 10, Fuzz.constant 50, Fuzz.constant 100 ]
+        )
 
 
 fuzzQueryMsg : Fuzzer Query.Msg
