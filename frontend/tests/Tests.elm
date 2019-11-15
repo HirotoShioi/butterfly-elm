@@ -1,11 +1,14 @@
 module Tests exposing (..)
 
+import Butterfly.Query as Query
 import Expect
+import Fuzz as Fuzz exposing (Fuzzer)
+import Fuzzer as Fuzzer
 import Route exposing (Route)
 import Test exposing (..)
 import Url exposing (Url)
-import Butterfly.Query as Query
-import Fuzzer as Fuzzer
+
+
 
 -- Check out https://package.elm-lang.org/packages/elm-explorations/test/latest to learn more about testing in Elm!
 
@@ -32,4 +35,30 @@ routeTest =
         , testParse "should parse Reference" "reference" (Just Route.Reference)
         ]
 
+
+
 -- Roundtrip test for query
+
+
+urlRoundTrip : Test
+urlRoundTrip =
+    describe "Url round trip"
+        [ fuzz Fuzzer.fuzzRoute "Should be able to perform round trip test" <|
+            \route ->
+                let
+                    url =
+                        "http://example.com"
+                            ++ Route.routeToString route
+                            |> Url.fromString
+                            |> Maybe.andThen Route.parseUrl
+
+                    expectedRoute =
+                        case route of
+                            Route.Dictionary query ->
+                                Route.Dictionary { query | maxShowCount = Query.maxShowCount }
+
+                            others ->
+                                others
+                in
+                Expect.equal url (Just expectedRoute)
+        ]

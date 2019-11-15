@@ -30,8 +30,6 @@ replaceUrl session =
     let
         url =
             Route.routeToString <| Route.Dictionary session.query
-
-        -- Fix this
     in
     session.nav.pushUrl url
 
