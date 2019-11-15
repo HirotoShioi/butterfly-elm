@@ -1,10 +1,14 @@
 module Route exposing (Route(..), href, parseUrl, replaceUrl, routeToString)
 
 import Browser.Navigation as Nav
+import Butterfly.Query as Query exposing (Query)
+import Butterfly.Type exposing (Region, toRegion)
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Url exposing (Url)
-import Url.Parser exposing ((</>), Parser, map, oneOf, parse, s, string, top)
+import Url.Builder as Builder
+import Url.Parser exposing ((</>), (<?>), Parser, map, oneOf, parse, s, string, top)
+import Url.Parser.Query as Query
 
 
 type Route
@@ -13,18 +17,42 @@ type Route
     | Category
     | Description
     | Area
-    | Dictionary
+    | Dictionary Query
     | Error
     | Detail String
 
 
+isNothing : Maybe a -> Bool
+isNothing mValue =
+    case mValue of
+        Nothing ->
+            True
+
+        Just _ ->
+            False
+
+
+allNothing : List (Maybe a) -> Bool
+allNothing maybes =
+    List.all isNothing maybes
+
+
+
+-- name region category color
+
+
+mkDictionary : Maybe String -> Maybe String -> Maybe String -> Maybe String -> Route
+mkDictionary mName mRegionStr mCategory mColor =
+    let
+        query =
+            Query.initWithArgs mName mRegionStr mCategory mColor
+    in
+    Dictionary query
+
+
 parseUrl : Url -> Maybe Route
 parseUrl url =
-    -- The RealWorld spec treats the fragment like a path.
-    -- This makes it *literally* the path, so we can proceed
-    -- with parsing as if it had been a normal path all along.
-    { url | path = Maybe.withDefault "" url.fragment, fragment = Nothing }
-        |> parse parser
+    parse parser url
 
 
 replaceUrl : Nav.Key -> Route -> Cmd msg
@@ -40,7 +68,7 @@ parser =
         , map Category (s "category")
         , map Description (s "description")
         , map Area (s "area")
-        , map Dictionary (s "dictionary")
+        , map mkDictionary (s "dictionary" <?> Query.string "name" <?> Query.string "region" <?> Query.string "category" <?> Query.string "hexColor")
         , map Error (s "error")
         , map Detail (s "detail" </> string)
         ]
@@ -51,33 +79,37 @@ href targetRoute =
     Attr.href (routeToString targetRoute)
 
 
+
+-- Fix this
+
+
 routeToString : Route -> String
 routeToString page =
     let
         pieces =
             case page of
                 Home ->
-                    []
+                    ""
 
                 Reference ->
-                    [ "reference" ]
+                    "reference"
 
                 Category ->
-                    [ "category" ]
+                    "category"
 
                 Description ->
-                    [ "description" ]
+                    "description"
 
                 Area ->
-                    [ "area" ]
+                    "area"
 
-                Dictionary ->
-                    [ "dictionary" ]
+                Dictionary query ->
+                    Builder.relative [ "dictionary" ] (Query.intoQueryParameter query)
 
                 Error ->
-                    [ "error" ]
+                    "error"
 
                 _ ->
-                    []
+                    ""
     in
-    "#/" ++ String.join "/" pieces
+    "/" ++ pieces

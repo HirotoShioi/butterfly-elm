@@ -1,9 +1,10 @@
-module Butterfly.Query exposing (Msg(..), Query, filterButterflies, init, maxShowCount, update)
+module Butterfly.Query exposing (Msg(..), Query, filterButterflies, init, initWithArgs, intoQueryParameter, maxShowCount, update)
 
-import Butterfly.Type exposing (Butterfly, Region, fromRegion)
+import Butterfly.Type exposing (Butterfly, Region, fromRegion, toRegion)
 import Chroma.Chroma as Chroma
 import Chroma.Types exposing (ExtColor)
 import Maybe.Extra exposing (unwrap)
+import Url.Builder as Builder exposing (QueryParameter)
 
 
 maxShowCount : Int
@@ -24,6 +25,15 @@ type alias Query =
 init : Query
 init =
     Query Nothing Nothing Nothing Nothing 70 maxShowCount
+
+
+initWithArgs : Maybe String -> Maybe String -> Maybe String -> Maybe String -> Query
+initWithArgs mName mRegionStr mCategory mColor =
+    let
+        mRegion =
+            Maybe.andThen (\str -> toRegion str |> Result.toMaybe) mRegionStr
+    in
+    Query mRegion mName mCategory mColor 70 maxShowCount
 
 
 type Msg
@@ -99,6 +109,26 @@ toSearchTerms query =
             unwrap [] (\h -> [ HexColor h query.colorDistance ]) query.hexColor
     in
     regionTerm ++ nameTerm ++ categoryTerm ++ hexStringTerm
+
+
+intoQueryParameter : Query -> List QueryParameter
+intoQueryParameter query =
+    let
+        toQuery term =
+            case term of
+                Name str ->
+                    Builder.string "name" str
+
+                Region region ->
+                    Builder.string "region" <| fromRegion region
+
+                Category category ->
+                    Builder.string "category" category
+
+                HexColor hexColor _ ->
+                    Builder.string "hexColor" hexColor
+    in
+    toSearchTerms query |> List.map toQuery
 
 
 type SearchTerm

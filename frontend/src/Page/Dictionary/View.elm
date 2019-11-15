@@ -120,7 +120,7 @@ showButterflies butterfly =
 
 mkLink : String -> String
 mkLink name =
-    relative [ "#", "detail", name ] []
+    relative [ "detail", name ] []
 
 
 errorView : Html msg

@@ -13,6 +13,7 @@ import Html.Events exposing (onClick)
 import Navigation as Nav exposing (Nav)
 import Route
 import Session exposing (Session)
+import Url.Builder as Builder
 import Util exposing (updateWith)
 
 
@@ -95,7 +96,7 @@ view model =
 
             Just remark ->
                 div [ class "content" ] [ p [] [ text remark ] ]
-        , div [ class "has-text-centered" ] [ a [ class "button", Route.href Route.Dictionary ] [ text "戻る" ] ]
+        , div [ class "has-text-centered" ] [ a [ class "button", Route.href (Route.Dictionary model.session.query) ] [ text "戻る" ] ]
         ]
 
 
@@ -112,7 +113,7 @@ butterflyImage : Maybe String -> Html msg
 butterflyImage mImgSrc =
     let
         imgPath =
-            Maybe.withDefault "Todo" mImgSrc
+            Maybe.withDefault "Todo" mImgSrc |> (\path -> Builder.absolute [ path ] [])
     in
     image SixteenByNine
         [ class "detail-image" ]

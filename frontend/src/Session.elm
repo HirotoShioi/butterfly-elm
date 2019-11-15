@@ -6,6 +6,7 @@ import Butterfly.Type exposing (Butterfly, Region(..))
 import NavBar
 import Navigation exposing (Nav)
 import Route
+import Url.Builder as Builder
 
 
 type alias Session =
@@ -24,6 +25,17 @@ type Msg
     | GotNavMessage NavBar.Msg
 
 
+replaceUrl : Session -> Cmd Msg
+replaceUrl session =
+    let
+        url =
+            Route.routeToString <| Route.Dictionary session.query
+
+        -- Fix this
+    in
+    session.nav.pushUrl url
+
+
 
 -- Convert to (Session, Cmd Msg)
 
@@ -36,10 +48,10 @@ update msg session =
 
         FromDictionary queryMsg ->
             let
-                updatedQuery =
-                    Query.update session.query queryMsg
+                updateSession =
+                    { session | query = Query.update session.query queryMsg }
             in
-            ( { session | query = updatedQuery }, Cmd.none )
+            ( updateSession, replaceUrl updateSession )
 
         FromDetail queryMsg ->
             let
@@ -47,7 +59,7 @@ update msg session =
                     Query.update Query.init queryMsg
             in
             ( { session | query = updatedQuery }
-            , session.nav.pushUrl (Route.routeToString Route.Dictionary)
+            , session.nav.pushUrl (Route.routeToString <| Route.Dictionary updatedQuery)
             )
 
         GotButterflyResponse apiMsg ->

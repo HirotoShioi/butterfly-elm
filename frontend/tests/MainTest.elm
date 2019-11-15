@@ -180,7 +180,7 @@ validatePage route model =
         ( Route.Area, Main.Area s ) ->
             expectEqual s
 
-        ( Route.Dictionary, Main.Dictionary m ) ->
+        ( Route.Dictionary query, Main.Dictionary m ) ->
             expectEqual m.session
 
         ( Route.Error, Main.Error s ) ->

@@ -118,7 +118,7 @@ fuzzRoute =
         , Fuzz.constant Route.Category
         , Fuzz.constant Route.Description
         , Fuzz.constant Route.Area
-        , Fuzz.constant Route.Dictionary
+        , Fuzz.map Route.Dictionary fuzzQuery
         , Fuzz.constant Route.Error
 
         --  , Fuzz.map Route.Detail (Fuzz.string)
