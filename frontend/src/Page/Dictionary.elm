@@ -10,6 +10,7 @@ import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
 import Navigation as Nav exposing (Nav)
 import Page.Dictionary.View as View
+import Route
 import Session exposing (Session)
 import Set exposing (Set)
 import Util exposing (updateWith)
@@ -34,6 +35,7 @@ type alias Model =
     , isRegionMenuOpen : Bool
     , isCategoryMenuOpen : Bool
     , isColorMenuOpen : Bool
+    , query : Query
     }
 
 
@@ -49,17 +51,17 @@ getSession model =
 
 disableMenus : Model -> Model
 disableMenus model =
-    Model model.session False False False
+    Model model.session False False False model.query
 
 
-init : Session -> ( Model, Cmd Msg )
+init : Session -> Query -> ( Model, Cmd Msg )
 init session =
     initResult session
 
 
-initResult : Session -> ( Model, Cmd Msg )
-initResult session =
-    ( Model session False False False, Cmd.none )
+initResult : Session -> Query -> ( Model, Cmd Msg )
+initResult session query =
+    ( Model session False False False query, Cmd.none )
 
 
 updateSession : Model -> Session -> Model
@@ -67,16 +69,26 @@ updateSession model session =
     { model | session = session }
 
 
+pushQueryUrl : Model -> Query.Msg -> ( Model, Cmd Msg )
+pushQueryUrl model queryMsg =
+    let
+        query =
+            Query.update model.query queryMsg
+
+        updatedModel =
+            disableMenus model |> (\m -> { m | query = query })
+
+        url =
+            Route.routeToString (Route.Dictionary query)
+    in
+    ( updatedModel, Cmd.map GotSessionMsg <| model.session.nav.pushUrl url )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         CategoryClicked category ->
-            let
-                updatedModel =
-                    disableMenus model
-            in
-            Session.update (Session.FromDictionary <| Query.UpdateCategory category) model.session
-                |> updateWith (updateSession updatedModel) GotSessionMsg
+            pushQueryUrl model (Query.UpdateCategory category)
 
         RegionClicked regionStr ->
             case toRegion regionStr of
@@ -84,20 +96,10 @@ update msg model =
                     ( model, Cmd.none )
 
                 Ok region ->
-                    let
-                        updatedModel =
-                            disableMenus model
-                    in
-                    Session.update (Session.FromDictionary <| Query.UpdateRegion region) model.session
-                        |> updateWith (updateSession updatedModel) GotSessionMsg
+                    pushQueryUrl model (Query.UpdateRegion region)
 
         ColorClicked hexString ->
-            let
-                updatedModel =
-                    disableMenus model
-            in
-            Session.update (Session.FromDictionary <| Query.UpdateColor hexString) model.session
-                |> updateWith (updateSession updatedModel) GotSessionMsg
+            pushQueryUrl model (Query.UpdateColor hexString)
 
         ToggleRegionMenu ->
             let
@@ -133,24 +135,24 @@ update msg model =
             ( updatedModel, Cmd.none )
 
         ResetColor ->
-            Session.update (Session.FromDictionary Query.ResetColor) model.session
-                |> updateWith (updateSession model) GotSessionMsg
+            pushQueryUrl model Query.ResetColor
 
         ResetRegion ->
-            Session.update (Session.FromDictionary Query.ResetRegion) model.session
-                |> updateWith (updateSession model) GotSessionMsg
+            pushQueryUrl model Query.ResetRegion
 
         ResetCategory ->
-            Session.update (Session.FromDictionary Query.ResetCategory) model.session
-                |> updateWith (updateSession model) GotSessionMsg
+            pushQueryUrl model Query.ResetCategory
 
         GotSessionMsg sessionMsg ->
             Session.update sessionMsg model.session
                 |> updateWith (updateSession model) GotSessionMsg
 
         LoadButterflies ->
-            Session.update (Session.FromDictionary Query.LoadMore) model.session
-                |> updateWith (updateSession model) GotSessionMsg
+            let
+                query =
+                    Query.update model.query Query.LoadMore
+            in
+            ( { model | query = query }, Cmd.none )
 
 
 
@@ -165,10 +167,10 @@ view model =
         Ok butterflies ->
             let
                 filteredButterflies =
-                    filterButterflies butterflies model.session.query
+                    filterButterflies butterflies model.query
 
                 showingButterflies =
-                    List.take model.session.query.maxShowCount filteredButterflies
+                    List.take model.query.maxShowCount filteredButterflies
 
                 categoryDropdown =
                     mkCategoryDropdown butterflies model
@@ -189,7 +191,7 @@ view model =
                         , div [ class "control" ] [ categoryDropdown ]
                         , div [ class "control" ] [ colorDropdown ToggleColorMenu ColorClicked ]
                         ]
-                    , tagList model.session.query
+                    , tagList model.query
                     ]
                 , if List.isEmpty filteredButterflies then
                     View.emptyView
@@ -260,7 +262,7 @@ mkCategoryDropdown : List Butterfly -> Model -> Html Msg
 mkCategoryDropdown butterflies model =
     let
         categoryList =
-            Set.toList <| mkCategorySet model.session.query butterflies
+            Set.toList <| mkCategorySet model.query butterflies
     in
     View.searchDropdown
         "分類"

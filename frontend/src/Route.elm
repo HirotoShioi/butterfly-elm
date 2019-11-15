@@ -2,7 +2,6 @@ module Route exposing (Route(..), href, parseUrl, replaceUrl, routeToString)
 
 import Browser.Navigation as Nav
 import Butterfly.Query as Query exposing (Query)
-import Butterfly.Type exposing (Region, toRegion)
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Url exposing (Url)
@@ -20,21 +19,6 @@ type Route
     | Dictionary Query
     | Error
     | Detail String
-
-
-isNothing : Maybe a -> Bool
-isNothing mValue =
-    case mValue of
-        Nothing ->
-            True
-
-        Just _ ->
-            False
-
-
-allNothing : List (Maybe a) -> Bool
-allNothing maybes =
-    List.all isNothing maybes
 
 
 

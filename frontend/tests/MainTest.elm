@@ -1,5 +1,6 @@
 module MainTest exposing (testMain)
 
+import Butterfly.Query as Query
 import Expect exposing (Expectation)
 import Fuzz as Fuzz exposing (Fuzzer)
 import Fuzzer as Fuzz
@@ -221,6 +222,6 @@ goDictionary : Main.Model -> Main.Model
 goDictionary someModel =
     let
         dictionaryModel =
-            Tuple.first <| Dictionary.init (Main.getSession someModel)
+            Tuple.first <| Dictionary.init (Main.getSession someModel) Query.init
     in
     Main.Dictionary dictionaryModel

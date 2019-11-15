@@ -209,11 +209,7 @@ changeRouteTo maybeRoute model =
                     ( Area session, Cmd.none )
 
                 Just (Route.Dictionary query) ->
-                    let
-                        updatedSession =
-                            { session | query = query }
-                    in
-                    updateWith Dictionary GotDictionaryMsg (Dic.init updatedSession)
+                    updateWith Dictionary GotDictionaryMsg (Dic.init session query)
 
                 Just Route.Error ->
                     ( Error session, Cmd.none )
