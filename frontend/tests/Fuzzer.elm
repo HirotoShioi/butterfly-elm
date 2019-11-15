@@ -62,15 +62,12 @@ fuzzDictionaryMsg =
 
 fuzzDictionaryModel : Fuzzer Dictionary.Model
 fuzzDictionaryModel =
-    Fuzz.map5
+    Fuzz.map4
         Dictionary.Model
         fuzzSession
         Fuzz.bool
         Fuzz.bool
         Fuzz.bool
-        (Fuzz.oneOf
-            [ Fuzz.constant 10, Fuzz.constant 50, Fuzz.constant 100 ]
-        )
 
 
 fuzzQueryMsg : Fuzzer Query.Msg
@@ -82,6 +79,8 @@ fuzzQueryMsg =
         , Fuzz.map Query.UpdateCategory Fuzz.string
         , Fuzz.map Query.UpdateColor Fuzz.string
         , Fuzz.map Query.UpdateRegion fuzzRegion
+        , Fuzz.constant Query.ResetAll
+        , Fuzz.constant Query.LoadMore
         ]
 
 
@@ -317,3 +316,4 @@ genQuery =
         |> Random.andMap (toMaybe genHiragana)
         |> Random.andMap (toMaybe genHexString)
         |> Random.andMap (Random.constant 70)
+        |> Random.andMap (Random.int 10 100)

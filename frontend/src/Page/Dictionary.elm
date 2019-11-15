@@ -1,4 +1,4 @@
-module Page.Dictionary exposing (Model, Msg(..), getNav, getSession, init, showCount, update, updateSession, view)
+module Page.Dictionary exposing (Model, Msg(..), getNav, getSession, init, update, updateSession, view)
 
 import Browser.Navigation as Nav
 import Bulma.Components as Components
@@ -29,17 +29,11 @@ type Msg
     | LoadButterflies
 
 
-showCount : Int
-showCount =
-    100
-
-
 type alias Model =
     { session : Session
     , isRegionMenuOpen : Bool
     , isCategoryMenuOpen : Bool
     , isColorMenuOpen : Bool
-    , maxShowCount : Int
     }
 
 
@@ -55,7 +49,7 @@ getSession model =
 
 disableMenus : Model -> Model
 disableMenus model =
-    Model model.session False False False showCount
+    Model model.session False False False
 
 
 init : Session -> ( Model, Cmd Msg )
@@ -65,7 +59,7 @@ init session =
 
 initResult : Session -> ( Model, Cmd Msg )
 initResult session =
-    ( Model session False False False showCount, Cmd.none )
+    ( Model session False False False, Cmd.none )
 
 
 updateSession : Model -> Session -> Model
@@ -155,11 +149,8 @@ update msg model =
                 |> updateWith (updateSession model) GotSessionMsg
 
         LoadButterflies ->
-            let
-                updatedModel =
-                    { model | maxShowCount = model.maxShowCount + showCount }
-            in
-            ( updatedModel, Cmd.none )
+            Session.update (Session.FromDictionary Query.LoadMore) model.session
+                |> updateWith (updateSession model) GotSessionMsg
 
 
 
@@ -177,7 +168,7 @@ view model =
                     filterButterflies butterflies model.session.query
 
                 showingButterflies =
-                    List.take model.maxShowCount filteredButterflies
+                    List.take model.session.query.maxShowCount filteredButterflies
 
                 categoryDropdown =
                     mkCategoryDropdown butterflies model

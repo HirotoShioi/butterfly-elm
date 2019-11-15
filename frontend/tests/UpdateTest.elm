@@ -195,11 +195,7 @@ validateDictionary msg before =
             Expect.equal after.session.query.region Nothing
 
         Dictionary.LoadButterflies ->
-            let
-                updatedBefore =
-                    { before | maxShowCount = before.maxShowCount + Dictionary.showCount }
-            in
-            Expect.equal after updatedBefore
+            Expect.equal after.session.query.maxShowCount (before.session.query.maxShowCount + Query.maxShowCount)
 
         _ ->
             Expect.true "Not implemented" True
@@ -237,42 +233,60 @@ validateQueryUpdate msg query =
         Query.ResetCategory ->
             let
                 expected =
-                    { query | category = Nothing }
+                    { query
+                        | category = Nothing
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
         Query.ResetColor ->
             let
                 expected =
-                    { query | hexColor = Nothing }
+                    { query
+                        | hexColor = Nothing
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
         Query.ResetRegion ->
             let
                 expected =
-                    { query | region = Nothing }
+                    { query
+                        | region = Nothing
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
         Query.UpdateCategory category ->
             let
                 expected =
-                    { query | category = Just category }
+                    { query
+                        | category = Just category
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
         Query.UpdateColor hexColor ->
             let
                 expected =
-                    { query | hexColor = Just hexColor }
+                    { query
+                        | hexColor = Just hexColor
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
         Query.UpdateRegion region ->
             let
                 expected =
-                    { query | region = Just region }
+                    { query
+                        | region = Just region
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
@@ -281,8 +295,12 @@ validateQueryUpdate msg query =
                 [ \q -> Expect.equal q.hexColor Nothing
                 , \q -> Expect.equal q.region Nothing
                 , \q -> Expect.equal q.category Nothing
+                , \q -> Expect.equal q.maxShowCount Query.maxShowCount
                 ]
                 updatedQuery
+
+        Query.LoadMore ->
+            Expect.equal updatedQuery.maxShowCount (query.maxShowCount + Query.maxShowCount)
 
 
 
