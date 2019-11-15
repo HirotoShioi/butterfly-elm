@@ -2,6 +2,7 @@ module Fuzzer exposing
     ( fuzzButterfly
     , fuzzDetailModel
     , fuzzDetailMsg
+    , fuzzDictionaryModel
     , fuzzDictionaryMsg
     , fuzzMainModel
     , fuzzNavBarMsg
@@ -51,11 +52,22 @@ fuzzDictionaryMsg =
         , Fuzz.constant Dictionary.ResetColor
         , Fuzz.constant Dictionary.ResetCategory
         , Fuzz.constant Dictionary.ResetRegion
+        , Fuzz.constant Dictionary.LoadButterflies
         , Fuzz.map Dictionary.RegionClicked
             (Fuzz.oneOf [ fuzzRegionStr, Fuzz.string ])
         , Fuzz.map Dictionary.ColorClicked Fuzz.string
         , Fuzz.map Dictionary.CategoryClicked Fuzz.string
         ]
+
+
+fuzzDictionaryModel : Fuzzer Dictionary.Model
+fuzzDictionaryModel =
+    Fuzz.map4
+        Dictionary.Model
+        fuzzSession
+        Fuzz.bool
+        Fuzz.bool
+        Fuzz.bool
 
 
 fuzzQueryMsg : Fuzzer Query.Msg
@@ -67,6 +79,8 @@ fuzzQueryMsg =
         , Fuzz.map Query.UpdateCategory Fuzz.string
         , Fuzz.map Query.UpdateColor Fuzz.string
         , Fuzz.map Query.UpdateRegion fuzzRegion
+        , Fuzz.constant Query.ResetAll
+        , Fuzz.constant Query.LoadMore
         ]
 
 
@@ -302,3 +316,4 @@ genQuery =
         |> Random.andMap (toMaybe genHiragana)
         |> Random.andMap (toMaybe genHexString)
         |> Random.andMap (Random.constant 70)
+        |> Random.andMap (Random.int 10 100)

@@ -121,20 +121,18 @@ validateSession msg session =
 dictionaryUpdateTest : Test
 dictionaryUpdateTest =
     describe "Dictionary"
-        [ fuzz (Fuzz.tuple ( Fuzz.fuzzDictionaryMsg, Fuzz.fuzzSession ))
+        [ fuzz (Fuzz.tuple ( Fuzz.fuzzDictionaryMsg, Fuzz.fuzzDictionaryModel ))
             "Should handle update as expected"
           <|
-            \( dictionaryMsg, session ) ->
-                Dictionary.init session
-                    |> validateDictionary dictionaryMsg
+            \( dictionaryMsg, model ) -> validateDictionary dictionaryMsg model
         ]
 
 
 validateDictionary :
     Dictionary.Msg
-    -> ( Dictionary.Model, Cmd Dictionary.Msg )
+    -> Dictionary.Model
     -> Expectation
-validateDictionary msg ( before, fromCmd ) =
+validateDictionary msg before =
     let
         ( after, cmd ) =
             Dictionary.update msg before
@@ -143,21 +141,33 @@ validateDictionary msg ( before, fromCmd ) =
         Dictionary.ToggleRegionMenu ->
             let
                 expectedModel =
-                    { before | isRegionMenuOpen = True }
+                    { before
+                        | isRegionMenuOpen = not before.isRegionMenuOpen
+                        , isCategoryMenuOpen = False
+                        , isColorMenuOpen = False
+                    }
             in
             Expect.equal expectedModel after
 
         Dictionary.ToggleColorMenu ->
             let
                 expectedModel =
-                    { before | isColorMenuOpen = True }
+                    { before
+                        | isColorMenuOpen = not before.isColorMenuOpen
+                        , isRegionMenuOpen = False
+                        , isCategoryMenuOpen = False
+                    }
             in
             Expect.equal expectedModel after
 
         Dictionary.ToggleCategoryMenu ->
             let
                 expectedModel =
-                    { before | isCategoryMenuOpen = True }
+                    { before
+                        | isCategoryMenuOpen = not before.isCategoryMenuOpen
+                        , isColorMenuOpen = False
+                        , isRegionMenuOpen = False
+                    }
             in
             Expect.equal expectedModel after
 
@@ -183,6 +193,9 @@ validateDictionary msg ( before, fromCmd ) =
 
         Dictionary.ResetRegion ->
             Expect.equal after.session.query.region Nothing
+
+        Dictionary.LoadButterflies ->
+            Expect.equal after.session.query.maxShowCount (before.session.query.maxShowCount + Query.maxShowCount)
 
         _ ->
             Expect.true "Not implemented" True
@@ -220,42 +233,60 @@ validateQueryUpdate msg query =
         Query.ResetCategory ->
             let
                 expected =
-                    { query | category = Nothing }
+                    { query
+                        | category = Nothing
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
         Query.ResetColor ->
             let
                 expected =
-                    { query | hexColor = Nothing }
+                    { query
+                        | hexColor = Nothing
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
         Query.ResetRegion ->
             let
                 expected =
-                    { query | region = Nothing }
+                    { query
+                        | region = Nothing
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
         Query.UpdateCategory category ->
             let
                 expected =
-                    { query | category = Just category }
+                    { query
+                        | category = Just category
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
         Query.UpdateColor hexColor ->
             let
                 expected =
-                    { query | hexColor = Just hexColor }
+                    { query
+                        | hexColor = Just hexColor
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
         Query.UpdateRegion region ->
             let
                 expected =
-                    { query | region = Just region }
+                    { query
+                        | region = Just region
+                        , maxShowCount = Query.maxShowCount
+                    }
             in
             Expect.equal updatedQuery expected
 
@@ -264,8 +295,12 @@ validateQueryUpdate msg query =
                 [ \q -> Expect.equal q.hexColor Nothing
                 , \q -> Expect.equal q.region Nothing
                 , \q -> Expect.equal q.category Nothing
+                , \q -> Expect.equal q.maxShowCount Query.maxShowCount
                 ]
                 updatedQuery
+
+        Query.LoadMore ->
+            Expect.equal updatedQuery.maxShowCount (query.maxShowCount + Query.maxShowCount)
 
 
 

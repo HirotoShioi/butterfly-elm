@@ -4,7 +4,7 @@ import Browser.Navigation as Nav
 import Bulma.Components as Components
 import Butterfly.Query as Query exposing (Query, filterButterflies)
 import Butterfly.Type exposing (Butterfly, Region(..), fromRegion, regionList, toRegion)
-import Html exposing (Html, div)
+import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
@@ -26,6 +26,7 @@ type Msg
     | ResetRegion
     | ResetCategory
     | GotSessionMsg Session.Msg
+    | LoadButterflies
 
 
 type alias Model =
@@ -147,6 +148,10 @@ update msg model =
             Session.update sessionMsg model.session
                 |> updateWith (updateSession model) GotSessionMsg
 
+        LoadButterflies ->
+            Session.update (Session.FromDictionary Query.LoadMore) model.session
+                |> updateWith (updateSession model) GotSessionMsg
+
 
 
 --------------------------------------------------------------------------------
@@ -162,6 +167,9 @@ view model =
                 filteredButterflies =
                     filterButterflies butterflies model.session.query
 
+                showingButterflies =
+                    List.take model.session.query.maxShowCount filteredButterflies
+
                 categoryDropdown =
                     mkCategoryDropdown butterflies model
 
@@ -170,6 +178,9 @@ view model =
 
                 colorDropdown =
                     mkColorDropdown model
+
+                showMoreShouldShow =
+                    List.length filteredButterflies - List.length showingButterflies > 0
             in
             div [ class "dictionary-view" ]
                 [ div [ class "dictionary-search-content" ]
@@ -189,11 +200,23 @@ view model =
                             (\butterfly ->
                                 ( butterfly.jpName, View.showButterflies butterfly )
                             )
-                            filteredButterflies
+                            showingButterflies
+                , showMoreView showMoreShouldShow LoadButterflies
                 ]
 
         Err _ ->
             View.errorView
+
+
+showMoreView : Bool -> msg -> Html msg
+showMoreView shouldShow showMoreMsg =
+    if shouldShow then
+        div [ class "has-text-centered" ]
+            [ a [ class "button", onClick showMoreMsg ] [ text "もっと見る" ]
+            ]
+
+    else
+        div [] []
 
 
 tagList : Query -> Html Msg

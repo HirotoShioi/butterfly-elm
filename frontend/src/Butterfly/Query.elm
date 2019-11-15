@@ -1,9 +1,14 @@
-module Butterfly.Query exposing (Msg(..), Query, filterButterflies, init, update)
+module Butterfly.Query exposing (Msg(..), Query, filterButterflies, init, maxShowCount, update)
 
 import Butterfly.Type exposing (Butterfly, Region, fromRegion)
 import Chroma.Chroma as Chroma
 import Chroma.Types exposing (ExtColor)
 import Maybe.Extra exposing (unwrap)
+
+
+maxShowCount : Int
+maxShowCount =
+    100
 
 
 type alias Query =
@@ -12,12 +17,13 @@ type alias Query =
     , category : Maybe String
     , hexColor : Maybe String
     , colorDistance : Float
+    , maxShowCount : Int
     }
 
 
 init : Query
 init =
-    Query Nothing Nothing Nothing Nothing 70
+    Query Nothing Nothing Nothing Nothing 70 maxShowCount
 
 
 type Msg
@@ -28,28 +34,50 @@ type Msg
     | UpdateRegion Region
     | UpdateColor String
     | ResetAll
+    | LoadMore
 
 
 update : Query -> Msg -> Query
 update query msg =
     case msg of
         ResetCategory ->
-            { query | category = Nothing }
+            { query
+                | category = Nothing
+                , maxShowCount = maxShowCount
+            }
 
         ResetColor ->
-            { query | hexColor = Nothing }
+            { query
+                | hexColor = Nothing
+                , maxShowCount = maxShowCount
+            }
 
         ResetRegion ->
-            { query | region = Nothing }
+            { query
+                | region = Nothing
+                , maxShowCount = maxShowCount
+            }
 
         UpdateCategory category ->
-            { query | category = Just category }
+            { query
+                | category = Just category
+                , maxShowCount = maxShowCount
+            }
 
         UpdateRegion region ->
-            { query | region = Just region }
+            { query
+                | region = Just region
+                , maxShowCount = maxShowCount
+            }
 
         UpdateColor color ->
-            { query | hexColor = Just color }
+            { query
+                | hexColor = Just color
+                , maxShowCount = maxShowCount
+            }
+
+        LoadMore ->
+            { query | maxShowCount = query.maxShowCount + maxShowCount }
 
         ResetAll ->
             init
