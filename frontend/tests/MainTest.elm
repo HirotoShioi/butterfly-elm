@@ -1,5 +1,6 @@
 module MainTest exposing (testMain)
 
+import Butterfly.Query as Query
 import Expect exposing (Expectation)
 import Fuzz as Fuzz exposing (Fuzzer)
 import Fuzzer as Fuzz
@@ -180,7 +181,7 @@ validatePage route model =
         ( Route.Area, Main.Area s ) ->
             expectEqual s
 
-        ( Route.Dictionary, Main.Dictionary m ) ->
+        ( Route.Dictionary query, Main.Dictionary m ) ->
             expectEqual m.session
 
         ( Route.Error, Main.Error s ) ->
@@ -221,6 +222,6 @@ goDictionary : Main.Model -> Main.Model
 goDictionary someModel =
     let
         dictionaryModel =
-            Tuple.first <| Dictionary.init (Main.getSession someModel)
+            Tuple.first <| Dictionary.init (Main.getSession someModel) Query.init
     in
     Main.Dictionary dictionaryModel

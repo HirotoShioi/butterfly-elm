@@ -74,13 +74,10 @@ expectedInitSession =
         navBar =
             NavBar.init
 
-        query =
-            Query.init
-
         response =
             Ok []
     in
-    Session nav navBar query response
+    Session nav navBar response
 
 
 validateSession : Session.Msg -> Session -> Expectation
@@ -92,12 +89,6 @@ validateSession msg session =
     case msg of
         Session.DisableMenu ->
             Expect.equal updatedSession.navModel False
-
-        Session.FromDictionary queryMsg ->
-            Expect.equal updatedSession.query (Query.update session.query queryMsg)
-
-        Session.FromDetail queryMsg ->
-            Expect.equal updatedSession.query (Query.update Query.init queryMsg)
 
         Session.GotButterflyResponse (Api.GotButterflies res) ->
             case res of
@@ -172,30 +163,30 @@ validateDictionary msg before =
             Expect.equal expectedModel after
 
         Dictionary.ColorClicked color ->
-            Expect.equal after.session.query.hexColor (Just color)
+            Expect.equal after.query.hexColor (Just color)
 
         Dictionary.RegionClicked regionStr ->
             case toRegion regionStr of
                 Err _ ->
-                    Expect.equal after.session.query.region before.session.query.region
+                    Expect.equal after.query.region before.query.region
 
                 Ok region ->
-                    Expect.equal after.session.query.region (Just region)
+                    Expect.equal after.query.region (Just region)
 
         Dictionary.CategoryClicked category ->
-            Expect.equal after.session.query.category (Just category)
+            Expect.equal after.query.category (Just category)
 
         Dictionary.ResetCategory ->
-            Expect.equal after.session.query.category Nothing
+            Expect.equal after.query.category Nothing
 
         Dictionary.ResetColor ->
-            Expect.equal after.session.query.hexColor Nothing
+            Expect.equal after.query.hexColor Nothing
 
         Dictionary.ResetRegion ->
-            Expect.equal after.session.query.region Nothing
+            Expect.equal after.query.region Nothing
 
         Dictionary.LoadButterflies ->
-            Expect.equal after.session.query.maxShowCount (before.session.query.maxShowCount + Query.maxShowCount)
+            Expect.equal after.query.maxShowCount (before.query.maxShowCount + Query.maxShowCount)
 
         _ ->
             Expect.true "Not implemented" True
@@ -336,18 +327,18 @@ validateDetailUpdate msg model =
     in
     case msg of
         Detail.ColorClicked hexColor ->
-            Expect.equal updatedModel.session.query.hexColor (Just hexColor)
+            Expect.equal updatedModel model
 
         Detail.RegionClicked regionStr ->
             case toRegion regionStr of
                 Err _ ->
-                    Expect.equal updatedModel.session.query.region model.session.query.region
+                    Expect.equal updatedModel model
 
                 Ok region ->
-                    Expect.equal updatedModel.session.query.region (Just region)
+                    Expect.equal updatedModel model
 
         Detail.CategoryClicked category ->
-            Expect.equal updatedModel.session.query.category (Just category)
+            Expect.equal updatedModel model
 
         Detail.GotSessionMsg sessionMsg ->
             let
@@ -358,6 +349,9 @@ validateDetailUpdate msg model =
                     { model | session = updatedSession }
             in
             Expect.equal updatedModel expectedModel
+
+        Detail.GoBack ->
+            Expect.equal updatedModel model
 
 
 initSession : ( Session, Cmd Session.Msg )

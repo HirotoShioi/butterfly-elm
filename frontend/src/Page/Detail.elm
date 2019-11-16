@@ -13,6 +13,7 @@ import Html.Events exposing (onClick)
 import Navigation as Nav exposing (Nav)
 import Route
 import Session exposing (Session)
+import Url.Builder as Builder
 import Util exposing (updateWith)
 
 
@@ -47,14 +48,26 @@ type Msg
     | GotSessionMsg Session.Msg
     | RegionClicked String
     | CategoryClicked String
+    | GoBack
+
+
+pushQueryUrl : Model -> Query.Msg -> ( Model, Cmd Msg )
+pushQueryUrl model queryMsg =
+    let
+        query =
+            Query.update Query.init queryMsg
+
+        url =
+            Route.routeToString (Route.Dictionary query)
+    in
+    ( model, Cmd.map GotSessionMsg <| model.session.nav.pushUrl url )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ColorClicked hexColor ->
-            Session.update (Session.FromDetail <| Query.UpdateColor hexColor) model.session
-                |> updateWith (updateSession model) GotSessionMsg
+            pushQueryUrl model (Query.UpdateColor hexColor)
 
         RegionClicked regionStr ->
             case toRegion regionStr of
@@ -62,12 +75,13 @@ update msg model =
                     ( model, Cmd.none )
 
                 Ok region ->
-                    Session.update (Session.FromDetail <| Query.UpdateRegion region) model.session
-                        |> updateWith (updateSession model) GotSessionMsg
+                    pushQueryUrl model (Query.UpdateRegion region)
 
         CategoryClicked category ->
-            Session.update (Session.FromDetail <| Query.UpdateCategory category) model.session
-                |> updateWith (updateSession model) GotSessionMsg
+            pushQueryUrl model (Query.UpdateCategory category)
+
+        GoBack ->
+            ( model, Cmd.map GotSessionMsg <| model.session.nav.back 1 )
 
         GotSessionMsg sessionMsg ->
             Session.update sessionMsg model.session
@@ -95,7 +109,7 @@ view model =
 
             Just remark ->
                 div [ class "content" ] [ p [] [ text remark ] ]
-        , div [ class "has-text-centered" ] [ a [ class "button", Route.href Route.Dictionary ] [ text "戻る" ] ]
+        , div [ class "has-text-centered" ] [ a [ class "button", onClick GoBack ] [ text "戻る" ] ]
         ]
 
 
@@ -112,7 +126,7 @@ butterflyImage : Maybe String -> Html msg
 butterflyImage mImgSrc =
     let
         imgPath =
-            Maybe.withDefault "Todo" mImgSrc
+            Maybe.withDefault "Todo" mImgSrc |> (\path -> Builder.absolute [ path ] [])
     in
     image SixteenByNine
         [ class "detail-image" ]

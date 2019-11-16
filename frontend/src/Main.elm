@@ -208,8 +208,8 @@ changeRouteTo maybeRoute model =
                 Just Route.Area ->
                     ( Area session, Cmd.none )
 
-                Just Route.Dictionary ->
-                    updateWith Dictionary GotDictionaryMsg (Dic.init session)
+                Just (Route.Dictionary query) ->
+                    updateWith Dictionary GotDictionaryMsg (Dic.init session query)
 
                 Just Route.Error ->
                     ( Error session, Cmd.none )
@@ -263,16 +263,11 @@ update msg model =
         ( UrlRequested urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    case url.fragment of
-                        Nothing ->
-                            ( model, Cmd.none )
-
-                        Just _ ->
-                            let
-                                nav =
-                                    getNav model
-                            in
-                            ( model, nav.pushUrl (Url.toString url) )
+                    let
+                        nav =
+                            getNav model
+                    in
+                    ( model, nav.pushUrl (Url.toString url) )
 
                 Browser.External "" ->
                     ( model, Cmd.none )

@@ -62,12 +62,13 @@ fuzzDictionaryMsg =
 
 fuzzDictionaryModel : Fuzzer Dictionary.Model
 fuzzDictionaryModel =
-    Fuzz.map4
+    Fuzz.map5
         Dictionary.Model
         fuzzSession
         Fuzz.bool
         Fuzz.bool
         Fuzz.bool
+        fuzzQuery
 
 
 fuzzQueryMsg : Fuzzer Query.Msg
@@ -96,8 +97,6 @@ fuzzSessionMsg : Fuzzer Session.Msg
 fuzzSessionMsg =
     Fuzz.oneOf
         [ Fuzz.constant Session.DisableMenu
-        , Fuzz.map Session.FromDictionary fuzzQueryMsg
-        , Fuzz.map Session.FromDetail fuzzQueryMsg
         , Fuzz.map Session.GotButterflyResponse
             (Fuzz.list fuzzButterfly
                 |> Fuzz.map
@@ -118,7 +117,7 @@ fuzzRoute =
         , Fuzz.constant Route.Category
         , Fuzz.constant Route.Description
         , Fuzz.constant Route.Area
-        , Fuzz.constant Route.Dictionary
+        , Fuzz.map Route.Dictionary fuzzQuery
         , Fuzz.constant Route.Error
 
         --  , Fuzz.map Route.Detail (Fuzz.string)
@@ -128,8 +127,8 @@ fuzzRoute =
 fuzzMainModel : Fuzzer Main.Model
 fuzzMainModel =
     let
-        dictionaryModel session =
-            Dictionary.init session |> Tuple.first
+        dictionaryModel session query =
+            Dictionary.init session query |> Tuple.first
     in
     Fuzz.oneOf
         [ Fuzz.map Main.Home fuzzSession
@@ -139,7 +138,7 @@ fuzzMainModel =
         , Fuzz.map Main.Category fuzzSession
         , Fuzz.map Main.Error fuzzSession
         , Fuzz.map Main.Description fuzzSession
-        , Fuzz.map Main.Dictionary (Fuzz.map dictionaryModel fuzzSession)
+        , Fuzz.map Main.Dictionary (Fuzz.map2 dictionaryModel fuzzSession fuzzQuery)
 
         -- | Loading Session Url.Url -- Generate random url
         -- | Detail Detail.Model -- Init requires butterfly data
@@ -152,8 +151,8 @@ fuzzSession =
         session =
             Session.init Nav.initWithStub NavBar.init |> Tuple.first
     in
-    Fuzz.map3
-        (\isNavOpen butterflies query ->
+    Fuzz.map2
+        (\isNavOpen butterflies ->
             { session
                 | butterflies =
                     if List.isEmpty butterflies then
@@ -162,12 +161,10 @@ fuzzSession =
                     else
                         Ok butterflies
                 , navModel = isNavOpen
-                , query = query
             }
         )
         Fuzz.bool
         (Fuzz.list fuzzButterfly)
-        fuzzQuery
 
 
 fuzzDetailModel : Fuzzer Detail.Model

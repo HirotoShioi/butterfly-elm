@@ -1,6 +1,7 @@
 module NavBar exposing (Model, Msg(..), init, update, view)
 
 import Bulma.Components as B
+import Butterfly.Query as Query
 import Html exposing (Html, a, div, img, span, text)
 import Html.Attributes exposing (class, href, src)
 import Html.Events exposing (onClick)
@@ -48,7 +49,7 @@ view page isOpen =
         , B.navbarMenu isOpen
             []
             [ B.navbarStart []
-                [ navLink page Route.Dictionary <| Page.toTitle Page.Dictionary
+                [ navLink page (Route.Dictionary Query.init) <| Page.toTitle Page.Dictionary
                 , navLink page Route.Description <| Page.toTitle Page.Description
                 , navLink page Route.Category <| Page.toTitle Page.Category
                 , navLink page Route.Area <| Page.toTitle Page.Area
@@ -93,7 +94,7 @@ isActive page route =
         ( Page.Area, Route.Area ) ->
             True
 
-        ( Page.Dictionary, Route.Dictionary ) ->
+        ( Page.Dictionary, Route.Dictionary _ ) ->
             True
 
         _ ->
