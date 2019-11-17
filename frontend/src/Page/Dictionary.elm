@@ -26,8 +26,11 @@ type Msg
     | ResetColor
     | ResetRegion
     | ResetCategory
+    | ResetName
     | GotSessionMsg Session.Msg
     | LoadButterflies
+    | SearchInput String
+    | NameSearch
 
 
 type alias Model =
@@ -36,6 +39,7 @@ type alias Model =
     , isCategoryMenuOpen : Bool
     , isColorMenuOpen : Bool
     , query : Query
+    , searchInput : String
     }
 
 
@@ -51,17 +55,12 @@ getSession model =
 
 disableMenus : Model -> Model
 disableMenus model =
-    Model model.session False False False model.query
+    Model model.session False False False model.query ""
 
 
 init : Session -> Query -> ( Model, Cmd Msg )
-init session =
-    initResult session
-
-
-initResult : Session -> Query -> ( Model, Cmd Msg )
-initResult session query =
-    ( Model session False False False query, Cmd.none )
+init session query =
+    ( Model session False False False query "", Cmd.none )
 
 
 updateSession : Model -> Session -> Model
@@ -143,9 +142,29 @@ update msg model =
         ResetCategory ->
             pushQueryUrl model Query.ResetCategory
 
+        ResetName ->
+            pushQueryUrl model Query.ResetName
+
         GotSessionMsg sessionMsg ->
             Session.update sessionMsg model.session
                 |> updateWith (updateSession model) GotSessionMsg
+
+        SearchInput input ->
+            ( { model | searchInput = input }, Cmd.none )
+
+        NameSearch ->
+            let
+                name =
+                    model.searchInput
+
+                emptyQueryModel =
+                    { model | searchInput = "" }
+            in
+            if String.isEmpty name then
+                ( model, Cmd.none )
+
+            else
+                pushQueryUrl emptyQueryModel (Query.UpdateName name)
 
         LoadButterflies ->
             let
@@ -186,11 +205,14 @@ view model =
             in
             div [ class "dictionary-view" ]
                 [ div [ class "dictionary-search-content" ]
-                    [ div [ class "field is-grouped is-grouped-multiline" ]
-                        [ div [ class "control" ] [ regionDropdown ]
-                        , div [ class "control" ] [ categoryDropdown ]
-                        , div [ class "control" ] [ colorDropdown ToggleColorMenu ColorClicked ]
-                        ]
+                    [ div [ class "field is-grouped is-grouped-multiline" ] <|
+                        List.map
+                            (\content -> div [ class "control" ] [ content ])
+                            [ View.nameSearchView SearchInput NameSearch
+                            , regionDropdown
+                            , categoryDropdown
+                            , colorDropdown ToggleColorMenu ColorClicked
+                            ]
                     , tagList model.query
                     ]
                 , if List.isEmpty filteredButterflies then
@@ -227,6 +249,9 @@ tagList query =
         mkTag mValue func =
             Maybe.withDefault [] <| Maybe.map (\str -> List.singleton <| func str) mValue
 
+        nameTag =
+            mkTag query.name (View.searchTag ResetName)
+
         cTag =
             mkTag query.hexColor (View.colorTag ResetColor)
 
@@ -237,7 +262,7 @@ tagList query =
             mkTag (Maybe.map fromRegion query.region) (View.searchTag ResetRegion)
 
         list =
-            List.concat [ regionTag, categoryTag, cTag ]
+            List.concat [ nameTag, regionTag, categoryTag, cTag ]
     in
     if List.isEmpty <| list then
         div [] []

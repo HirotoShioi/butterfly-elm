@@ -40,9 +40,11 @@ type Msg
     = ResetCategory
     | ResetColor
     | ResetRegion
+    | ResetName
     | UpdateCategory String
     | UpdateRegion Region
     | UpdateColor String
+    | UpdateName String
     | ResetAll
     | LoadMore
 
@@ -68,6 +70,12 @@ update query msg =
                 , maxShowCount = maxShowCount
             }
 
+        ResetName ->
+            { query
+                | name = Nothing
+                , maxShowCount = maxShowCount
+            }
+
         UpdateCategory category ->
             { query
                 | category = Just category
@@ -83,6 +91,12 @@ update query msg =
         UpdateColor color ->
             { query
                 | hexColor = Just color
+                , maxShowCount = maxShowCount
+            }
+
+        UpdateName name ->
+            { query
+                | name = Just name
                 , maxShowCount = maxShowCount
             }
 

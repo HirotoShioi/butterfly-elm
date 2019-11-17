@@ -1,13 +1,13 @@
-module Page.Dictionary.View exposing (colorTag, emptyView, errorView, searchDropdown, searchDropdownTrigger, searchTag, showButterflies)
+module Page.Dictionary.View exposing (colorTag, emptyView, errorView, nameSearchView, searchDropdown, searchDropdownTrigger, searchTag, showButterflies)
 
 import Bulma.Components as B
 import Bulma.Elements as B
 import Bulma.Modifiers as B
 import Bulma.Modifiers.Typography exposing (Color(..), Size(..), textCentered, textColor, textSize)
 import Butterfly.Type exposing (Butterfly)
-import Html exposing (Attribute, Html, a, div, i, img, p, span, text)
-import Html.Attributes exposing (attribute, class, disabled, href, src, style)
-import Html.Events exposing (onClick, preventDefaultOn)
+import Html exposing (Attribute, Html, a, div, i, img, input, p, span, text)
+import Html.Attributes exposing (attribute, class, disabled, href, placeholder, src, style, type_)
+import Html.Events exposing (onClick, onInput, preventDefaultOn)
 import Json.Decode as Json
 import Url.Builder exposing (relative)
 
@@ -130,5 +130,17 @@ errorView =
             [ B.title B.H4 [] [ text "データの読み込みに失敗しました。" ]
             , p [] [ text "インターネットの接続等を確認の後再度読み込んでください。" ]
             , a [ href "#/" ] [ text "ホームへ戻る" ]
+            ]
+        ]
+
+
+nameSearchView : (String -> msg) -> msg -> Html msg
+nameSearchView onInputMsg onSubmitMsg =
+    div [ class "field has-addons" ]
+        [ div [ class "control" ]
+            [ input [ class "input", type_ "text", placeholder "名前で検索", onInput onInputMsg ] [] ]
+        , div [ class "control" ]
+            [ a [ class "button is-default", onClick onSubmitMsg ]
+                [ text "検索" ]
             ]
         ]
