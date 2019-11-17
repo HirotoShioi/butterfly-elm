@@ -57,18 +57,21 @@ fuzzDictionaryMsg =
             (Fuzz.oneOf [ fuzzRegionStr, Fuzz.string ])
         , Fuzz.map Dictionary.ColorClicked Fuzz.string
         , Fuzz.map Dictionary.CategoryClicked Fuzz.string
+        , Fuzz.constant Dictionary.NameSearch
+        , Fuzz.map Dictionary.SearchInput Fuzz.string
         ]
 
 
 fuzzDictionaryModel : Fuzzer Dictionary.Model
 fuzzDictionaryModel =
-    Fuzz.map5
+    Fuzz.map
         Dictionary.Model
         fuzzSession
-        Fuzz.bool
-        Fuzz.bool
-        Fuzz.bool
-        fuzzQuery
+        |> Fuzz.andMap Fuzz.bool
+        |> Fuzz.andMap Fuzz.bool
+        |> Fuzz.andMap Fuzz.bool
+        |> Fuzz.andMap fuzzQuery
+        |> Fuzz.andMap Fuzz.string
 
 
 fuzzQueryMsg : Fuzzer Query.Msg

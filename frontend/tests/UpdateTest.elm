@@ -251,6 +251,16 @@ validateQueryUpdate msg query =
             in
             Expect.equal updatedQuery expected
 
+        Query.ResetName ->
+            let
+                expected =
+                    { query
+                        | name = Nothing
+                        , maxShowCount = Query.maxShowCount
+                    }
+            in
+            Expect.equal updatedQuery expected
+
         Query.UpdateCategory category ->
             let
                 expected =
@@ -278,6 +288,13 @@ validateQueryUpdate msg query =
                         | region = Just region
                         , maxShowCount = Query.maxShowCount
                     }
+            in
+            Expect.equal updatedQuery expected
+
+        Query.UpdateName name ->
+            let
+                expected =
+                    { query | name = Just name, maxShowCount = Query.maxShowCount }
             in
             Expect.equal updatedQuery expected
 
