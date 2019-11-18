@@ -7,6 +7,7 @@ import Bulma.Elements exposing (TitleSize(..), title)
 import Bulma.Layout exposing (HeroModifiers, SectionSpacing(..), hero, heroBody, section)
 import Bulma.Modifiers exposing (Color(..), Size(..))
 import Butterfly.Api as Api
+import Butterfly.Type exposing (getImageName)
 import Html exposing (Html, div, main_, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -214,17 +215,17 @@ changeRouteTo maybeRoute model =
                 Just Route.Error ->
                     ( Error session, Cmd.none )
 
-                Just (Route.Detail butterfly_name) ->
+                Just (Route.Detail image_name) ->
                     case session.butterflies of
                         Ok butterflies ->
                             let
                                 filterByName name =
-                                    List.filter (\b -> b.engName == name) butterflies
+                                    List.filter (\butterfly -> getImageName butterfly == Just name) butterflies
 
                                 mButterfly =
                                     Maybe.andThen
                                         (\name -> filterByName name |> List.head)
-                                        (Url.percentDecode butterfly_name)
+                                        (Url.percentDecode image_name)
                             in
                             case mButterfly of
                                 Nothing ->
