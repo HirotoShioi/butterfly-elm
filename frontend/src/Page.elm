@@ -1,22 +1,27 @@
 module Page exposing (Page(..), toTitle)
 
 
-type Page
+type
+    Page
+    -- 世界の蝶
     = Home
-      -- 世界の蝶
-    | Reference
       -- 参考文献
-    | Category
+    | Reference
       -- 蝶の分類
-    | Description
+    | Category
       -- 蝶の解説
-    | Area
+    | Description
       -- 生物区・蝶分類の地理
-    | Dictionary
+    | Area
       -- 570種の図鑑と解説
+    | Dictionary
+      -- ページが見つかりませんでした
     | NotFound
+      -- エラー
     | Error
+      -- 読み込み中
     | Loading
+      -- 詳細
     | Detail
 
 
