@@ -1,6 +1,7 @@
 module MainTest exposing (testMain)
 
 import Butterfly.Query as Query
+import Butterfly.Type exposing (getImageName)
 import Expect exposing (Expectation)
 import Fuzz as Fuzz exposing (Fuzzer)
 import Fuzzer as Fuzz
@@ -67,22 +68,32 @@ testMain =
                         }
 
                     route =
-                        Just (Route.Detail butterfly.engName)
-
-                    updatedModel =
-                        Main.updateSession mainModel updatedSession
-                            |> Main.changeRouteTo route
-                            |> Tuple.first
-
-                    detailModel =
-                        Detail.init (Main.getSession updatedModel) butterfly |> Tuple.first
+                        getImageName butterfly |> Maybe.andThen (\imageName -> Just <| Route.Detail imageName)
                 in
-                case session.butterflies of
-                    Ok _ ->
-                        Expect.equal updatedModel (Main.Detail detailModel)
+                case route of
+                    Nothing ->
+                        let
+                            s =
+                                { session | navModel = False }
+                        in
+                        Expect.equal (Main.changeRouteTo Nothing mainModel |> Tuple.first) (Main.NotFound s)
 
-                    Err _ ->
-                        Expect.equal updatedModel (Main.Error updatedSession)
+                    Just detailRoute ->
+                        let
+                            updatedModel =
+                                Main.updateSession mainModel updatedSession
+                                    |> Main.changeRouteTo (Just detailRoute)
+                                    |> Tuple.first
+
+                            detailModel =
+                                Detail.init (Main.getSession updatedModel) butterfly |> Tuple.first
+                        in
+                        case session.butterflies of
+                            Ok _ ->
+                                Expect.equal updatedModel (Main.Detail <| detailModel)
+
+                            Err _ ->
+                                Expect.equal updatedModel (Main.Error updatedSession)
         , fuzz (Fuzz.tuple ( Fuzz.fuzzSessionMsg, Fuzz.fuzzMainModel )) "Should handle GotSessionMsg as expected" <|
             \( sessionMsg, before ) ->
                 Main.update (Main.GotSessionMsg sessionMsg) before

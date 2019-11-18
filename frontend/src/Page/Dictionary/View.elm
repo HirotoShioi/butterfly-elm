@@ -4,7 +4,7 @@ import Bulma.Components as B
 import Bulma.Elements as B
 import Bulma.Modifiers as B
 import Bulma.Modifiers.Typography exposing (Color(..), Size(..), textCentered, textColor, textSize)
-import Butterfly.Type exposing (Butterfly)
+import Butterfly.Type exposing (Butterfly, getImageName)
 import Html exposing (Attribute, Html, a, div, i, img, input, p, span, text)
 import Html.Attributes exposing (attribute, class, disabled, href, placeholder, src, style, type_)
 import Html.Events exposing (onClick, onInput, preventDefaultOn)
@@ -103,7 +103,7 @@ searchTagModifiers =
 
 showButterflies : Butterfly -> Html msg
 showButterflies butterfly =
-    a [ href (mkLink butterfly.engName), class "column is-one-third-tablet is-one-fifth-desktop" ]
+    a [ href (mkLink butterfly), class "column is-one-third-tablet is-one-fifth-desktop" ]
         [ B.card [ class "butterfly-card" ]
             [ B.cardImage [] [ butterflyImage butterfly.imgPath ]
             , B.cardContent [ textCentered, textSize Small ]
@@ -118,9 +118,14 @@ showButterflies butterfly =
         ]
 
 
-mkLink : String -> String
-mkLink name =
-    relative [ "detail", name ] []
+mkLink : Butterfly -> String
+mkLink butterfly =
+    case getImageName butterfly of
+        Nothing ->
+            ""
+
+        Just imageName ->
+            relative [ "detail", imageName ] []
 
 
 errorView : Html msg

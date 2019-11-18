@@ -1,4 +1,4 @@
-module Butterfly.Type exposing (Butterfly, Color, Region(..), butterfliesDecoder, fromRegion, regionList, toRegion)
+module Butterfly.Type exposing (Butterfly, Color, Region(..), butterfliesDecoder, fromRegion, getImageName, regionList, toRegion)
 
 import Json.Decode as Decode exposing (Decoder, field, float, int, list, nullable, string)
 import Json.Decode.Pipeline exposing (required)
@@ -24,6 +24,23 @@ type alias Butterfly =
     , remarks : Maybe String
     , dominantColors : List Color
     }
+
+
+
+-- ./assets/india_australia/images/mesuakamonki.jpg
+
+
+getImageName : Butterfly -> Maybe String
+getImageName butterfly =
+    Maybe.andThen
+        (\path ->
+            String.split "/" path
+                |> List.reverse
+                |> List.head
+                |> Maybe.andThen
+                    (\str -> String.split "." str |> List.head)
+        )
+        butterfly.imgPath
 
 
 type alias Color =
