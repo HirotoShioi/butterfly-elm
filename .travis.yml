@@ -1,4 +1,6 @@
 sudo: false
+notifications:
+  email: false
 
 dist: trusty
 
