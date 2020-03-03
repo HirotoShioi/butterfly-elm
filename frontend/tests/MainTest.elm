@@ -12,7 +12,7 @@ import Page.Detail as Detail
 import Page.Dictionary as Dictionary
 import Route exposing (Route)
 import Session
-import Test exposing (Test, describe, test, fuzz)
+import Test exposing (Test, describe, fuzz, test)
 import Url exposing (Url)
 
 

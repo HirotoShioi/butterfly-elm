@@ -4,6 +4,7 @@ import Html exposing (Html, a, div, p, text)
 import Html.Attributes exposing (href)
 import Route as Route
 
+
 view : Html msg
 view =
     div []

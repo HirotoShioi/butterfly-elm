@@ -11,7 +11,7 @@ import Navigation as Nav
 import Page.Detail as Detail
 import Page.Dictionary as Dictionary
 import Session exposing (Session)
-import Test exposing (Test, describe, test, fuzz)
+import Test exposing (Test, describe, fuzz, test)
 
 
 
