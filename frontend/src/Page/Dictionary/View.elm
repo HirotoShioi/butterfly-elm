@@ -9,6 +9,7 @@ import Html exposing (Attribute, Html, a, div, i, img, input, p, span, text)
 import Html.Attributes exposing (attribute, class, disabled, href, placeholder, src, style, type_)
 import Html.Events exposing (onClick, onInput, preventDefaultOn)
 import Json.Decode as Json
+import Route as Route
 import Url.Builder exposing (relative)
 
 
@@ -134,7 +135,7 @@ errorView =
         [ div [ class "column is-8 is-offset-2" ]
             [ B.title B.H4 [] [ text "データの読み込みに失敗しました。" ]
             , p [] [ text "インターネットの接続等を確認の後再度読み込んでください。" ]
-            , a [ href "#/" ] [ text "ホームへ戻る" ]
+            , a [ Route.href Route.Home ] [ text "ホームへ戻る" ]
             ]
         ]
 

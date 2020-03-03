@@ -41,7 +41,7 @@ view page isOpen =
             (myNavbarBurger isOpen)
             [ B.navbarItem False
                 []
-                [ a [ Route.href Route.Description ]
+                [ a [ Route.href Route.Home ]
                     [ img [ src "https://package.elm-lang.org/assets/favicon.ico" ] []
                     ]
                 ]
