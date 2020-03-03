@@ -1,12 +1,11 @@
-module Tests exposing (..)
+module Tests exposing (routeTest, testParse, urlRoundTrip)
 
 import Butterfly.Query as Query
 import Expect
-import Fuzz as Fuzz exposing (Fuzzer)
 import Fuzzer as Fuzzer
 import Route exposing (Route)
-import Test exposing (..)
-import Url exposing (Url)
+import Test exposing (Test, describe, fuzz, test)
+import Url as Url
 
 
 

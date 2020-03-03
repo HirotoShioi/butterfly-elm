@@ -3,16 +3,16 @@ module MainTest exposing (testMain)
 import Butterfly.Query as Query
 import Butterfly.Type exposing (getImageName)
 import Expect exposing (Expectation)
-import Fuzz as Fuzz exposing (Fuzzer)
+import Fuzz as Fuzz
 import Fuzzer as Fuzz
 import Main
 import NavBar
-import Navigation as Nav exposing (Nav)
+import Navigation as Nav
 import Page.Detail as Detail
 import Page.Dictionary as Dictionary
 import Route exposing (Route)
 import Session
-import Test exposing (..)
+import Test exposing (Test, describe, fuzz, test)
 import Url exposing (Url)
 
 
@@ -192,7 +192,7 @@ validatePage route model =
         ( Route.Area, Main.Area s ) ->
             expectEqual s
 
-        ( Route.Dictionary query, Main.Dictionary m ) ->
+        ( Route.Dictionary _, Main.Dictionary m ) ->
             expectEqual m.session
 
         ( Route.Error, Main.Error s ) ->
@@ -222,11 +222,6 @@ enableNavBar someModel =
             { session | navModel = True }
     in
     Main.updateSession someModel updatedSession
-
-
-goHome : Main.Model -> Main.Model
-goHome someModel =
-    Main.Home (Main.getSession someModel)
 
 
 goDictionary : Main.Model -> Main.Model

@@ -15,12 +15,11 @@ module Fuzzer exposing
 
 import Butterfly.Api as Api
 import Butterfly.Query as Query exposing (Query)
-import Butterfly.Type exposing (Butterfly, Color, Region(..), fromRegion, regionList, toRegion)
-import Expect exposing (Expectation)
+import Butterfly.Type exposing (Butterfly, Color, Region(..), fromRegion, regionList)
 import Fuzz as Fuzz exposing (Fuzzer)
 import Main
 import NavBar
-import Navigation as Nav exposing (Nav)
+import Navigation as Nav
 import Page.Detail as Detail
 import Page.Dictionary as Dictionary
 import Random exposing (Generator)
@@ -33,8 +32,6 @@ import Random.String as Random
 import Route exposing (Route)
 import Session exposing (Session)
 import Shrink
-import Test exposing (..)
-import Url as Url exposing (Url)
 
 
 

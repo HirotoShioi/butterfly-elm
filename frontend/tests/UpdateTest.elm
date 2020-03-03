@@ -4,16 +4,14 @@ import Butterfly.Api as Api
 import Butterfly.Query as Query exposing (Query)
 import Butterfly.Type exposing (toRegion)
 import Expect exposing (Expectation)
-import Fuzz as Fuzz exposing (Fuzzer)
+import Fuzz as Fuzz
 import Fuzzer as Fuzz
-import Main
 import NavBar
-import Navigation as Nav exposing (Nav)
+import Navigation as Nav
 import Page.Detail as Detail
 import Page.Dictionary as Dictionary
 import Session exposing (Session)
-import Test exposing (..)
-import Url as Url exposing (Url)
+import Test exposing (Test, describe, fuzz, test)
 
 
 
@@ -34,7 +32,7 @@ navBarTest =
 validateNavBar : NavBar.Msg -> NavBar.Model -> Expectation
 validateNavBar msg model =
     let
-        ( updatedModel, cmd ) =
+        ( updatedModel, _ ) =
             NavBar.update msg model
     in
     case msg of
@@ -83,7 +81,7 @@ expectedInitSession =
 validateSession : Session.Msg -> Session -> Expectation
 validateSession msg session =
     let
-        ( updatedSession, cmd ) =
+        ( updatedSession, _ ) =
             Session.update msg session
     in
     case msg of
@@ -125,7 +123,7 @@ validateDictionary :
     -> Expectation
 validateDictionary msg before =
     let
-        ( after, cmd ) =
+        ( after, _ ) =
             Dictionary.update msg before
     in
     case msg of
@@ -343,7 +341,7 @@ validateDetailUpdate msg model =
             Detail.update msg model |> Tuple.first
     in
     case msg of
-        Detail.ColorClicked hexColor ->
+        Detail.ColorClicked _ ->
             Expect.equal updatedModel model
 
         Detail.RegionClicked regionStr ->
@@ -351,10 +349,10 @@ validateDetailUpdate msg model =
                 Err _ ->
                     Expect.equal updatedModel model
 
-                Ok region ->
+                Ok _ ->
                     Expect.equal updatedModel model
 
-        Detail.CategoryClicked category ->
+        Detail.CategoryClicked _ ->
             Expect.equal updatedModel model
 
         Detail.GotSessionMsg sessionMsg ->
